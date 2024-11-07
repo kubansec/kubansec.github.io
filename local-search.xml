@@ -5,68 +5,10 @@
   
   <entry>
     <title>栈迁移学习总结</title>
-    <link href="/2024/11/07/%E6%A0%88%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%933/"/>
-    <url>/2024/11/07/%E6%A0%88%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%933/</url>
-    
-    <content type="html"><![CDATA[<div class="markdown-body"><h2 id="111"><a href="#111" class="headerlink" title="111"></a>111</h2><h1 id="111-1"><a href="#111-1" class="headerlink" title="111"></a>111</h1></div>]]></content>
-    
-    
-    <categories>
-      
-      <category>pwn学习</category>
-      
-    </categories>
-    
-    
-    <tags>
-      
-      <tag>栈迁移</tag>
-      
-      <tag>ciscn_2019_es_2</tag>
-      
-      <tag>Black Watch 入群题-PWN1</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>栈迁移学习总结</title>
-    <link href="/2024/11/07/%E6%A0%88%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93v1/"/>
-    <url>/2024/11/07/%E6%A0%88%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93v1/</url>
-    
-    <content type="html"><![CDATA[<div class="markdown-body"><h2 id="111"><a href="#111" class="headerlink" title="111"></a>111</h2><h1 id="111-1"><a href="#111-1" class="headerlink" title="111"></a>111</h1></div>]]></content>
-    
-    
-    <categories>
-      
-      <category>pwn学习</category>
-      
-    </categories>
-    
-    
-    <tags>
-      
-      <tag>栈迁移</tag>
-      
-      <tag>ciscn_2019_es_2</tag>
-      
-      <tag>Black Watch 入群题-PWN1</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>栈迁移学习总结</title>
     <link href="/2024/11/07/%E6%A0%88%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/"/>
     <url>/2024/11/07/%E6%A0%88%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/</url>
     
-    <content type="html"><![CDATA[<div class="markdown-body"></div>]]></content>
+    <content type="html"><![CDATA[<div class="markdown-body"><h1 id="栈迁移学习总结"><a href="#栈迁移学习总结" class="headerlink" title="栈迁移学习总结"></a>栈迁移学习总结</h1><h2 id="前置知识：什么是栈迁移？"><a href="#前置知识：什么是栈迁移？" class="headerlink" title="前置知识：什么是栈迁移？"></a>前置知识：什么是栈迁移？</h2><blockquote><p><a href="https://ctf-wiki.org/pwn/linux/user-mode/stackoverflow/x86/fancy-rop/#stack-pivoting">https://ctf-wiki.org/pwn/linux/user-mode/stackoverflow/x86/fancy-rop/#stack-pivoting</a></p></blockquote><p>首先看一下正常的程序结构，函数在结束时会进行leave和ret指令<br>leave做两件事，第一件事是mov esp,ebp，也就是将esp移到ebp的位置，第二件事是pop ebp，也就是将ebp移到上一个函数的记录的位置上去<br>ret就做一件事pop eip，也就是将esp中的内容弹入eip中，也就是内容放到程序的执行流上。</p><p><img src="/img/1280X1280.PNG"></p></div>]]></content>
     
     
     <categories>
@@ -83,6 +25,8 @@
       <tag>ciscn_2019_es_2</tag>
       
       <tag>Black Watch 入群题-PWN1</tag>
+      
+      <tag>pwn</tag>
       
     </tags>
     
