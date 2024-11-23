@@ -22,31 +22,31 @@
     <meta name="description" content="前置知识：沙箱保护和ORW沙箱保护 SandBox正常情况下，程序可以使用所有的syscall，但其实这是不安全的，我们可以劫持程序流后通过execve的syscall来getshell。如果不想让程序去执行execve，我们可以这样做：将程序放入一个沙箱中，在这个沙箱中添加一条规则——禁用execve函数。在这个沙箱中的程序只要调用了execve的系统调用，直接给他中断掉，这就是沙箱sandbo">
 <meta property="og:type" content="article">
 <meta property="og:title" content="栈上ORW学习总结">
-<meta property="og:url" content="http://example.com/2024/11/12/%E6%A0%88%E4%B8%8AORW%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:url" content="http://kubansec.github.io/2024/11/12/%E6%A0%88%E4%B8%8AORW%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/index.html">
 <meta property="og:site_name" content="KubanSec&#39;s blog">
 <meta property="og:description" content="前置知识：沙箱保护和ORW沙箱保护 SandBox正常情况下，程序可以使用所有的syscall，但其实这是不安全的，我们可以劫持程序流后通过execve的syscall来getshell。如果不想让程序去执行execve，我们可以这样做：将程序放入一个沙箱中，在这个沙箱中添加一条规则——禁用execve函数。在这个沙箱中的程序只要调用了execve的系统调用，直接给他中断掉，这就是沙箱sandbo">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://example.com/img/p2/image-1.png">
-<meta property="og:image" content="http://example.com/img/p2/image-2.png">
-<meta property="og:image" content="http://example.com/img/p2/image-3.png">
-<meta property="og:image" content="http://example.com/img/p2/image-4.png">
-<meta property="og:image" content="http://example.com/img/p2/image-5.png">
-<meta property="og:image" content="http://example.com/img/p2/image-6.png">
-<meta property="og:image" content="http://example.com/img/p2/image-7.png">
-<meta property="og:image" content="http://example.com/img/p2/image-8.png">
-<meta property="og:image" content="http://example.com/img/p2/image-9.png">
-<meta property="og:image" content="http://example.com/img/p2/image-10.png">
-<meta property="og:image" content="http://example.com/img/p2/image-11.png">
-<meta property="og:image" content="http://example.com/img/p2/image-12.png">
-<meta property="og:image" content="http://example.com/img/p2/image-13.png">
-<meta property="og:image" content="http://example.com/img/p2/image-14.png">
-<meta property="og:image" content="http://example.com/img/p2/image-15.png">
-<meta property="og:image" content="http://example.com/img/p2/image-16.png">
-<meta property="og:image" content="http://example.com/img/p2/image-17.png">
-<meta property="og:image" content="http://example.com/img/p2/image-18.png">
-<meta property="og:image" content="http://example.com/img/p2/image-19.png">
-<meta property="og:image" content="http://example.com/img/p2/image-20.png">
-<meta property="og:image" content="http://example.com/img/p2/image-21.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p2/image-1.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p2/image-2.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p2/image-3.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p2/image-4.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p2/image-5.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p2/image-6.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p2/image-7.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p2/image-8.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p2/image-9.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p2/image-10.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p2/image-11.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p2/image-12.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p2/image-13.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p2/image-14.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p2/image-15.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p2/image-16.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p2/image-17.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p2/image-18.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p2/image-19.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p2/image-20.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p2/image-21.png">
 <meta property="article:published_time" content="2024-11-12T05:54:01.000Z">
 <meta property="article:modified_time" content="2024-11-14T13:21:35.637Z">
 <meta property="article:author" content="KubanSec">
@@ -55,7 +55,7 @@
 <meta property="article:tag" content="极客大挑战_2019_Not_Bad">
 <meta property="article:tag" content="HGAME_2023_week1_orw">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="http://example.com/img/p2/image-1.png">
+<meta name="twitter:image" content="http://kubansec.github.io/img/p2/image-1.png">
   
   
   
@@ -97,7 +97,7 @@
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
     Fluid.ctx = Object.assign({}, Fluid.ctx)
-    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+    var CONFIG = {"hostname":"kubansec.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
 
     if (CONFIG.web_analytics.follow_dnt) {
       var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
@@ -428,7 +428,7 @@
   <div class="license-box my-3">
     <div class="license-title">
       <div>栈上ORW学习总结</div>
-      <div>http://example.com/2024/11/12/栈上ORW学习总结/</div>
+      <div>http://kubansec.github.io/2024/11/12/栈上ORW学习总结/</div>
     </div>
     <div class="license-meta">
       
@@ -443,6 +443,11 @@
           <div>2024年11月12日</div>
         </div>
       
+      
+        <div class="license-meta-item license-meta-date">
+          <div>更新于</div>
+          <div>2024年11月14日</div>
+        </div>
       
       
         <div class="license-meta-item">
