@@ -227,6 +227,77 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2024/11/19/%E3%80%90%E5%A0%86%E5%88%A9%E7%94%A8%E3%80%91fastbin-attack%E7%AF%87%EF%BC%88%E4%B8%80%EF%BC%89fastbin_dup/" target="_self">
+          【堆利用】fastbin-attack学习总结
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/11/19/%E3%80%90%E5%A0%86%E5%88%A9%E7%94%A8%E3%80%91fastbin-attack%E7%AF%87%EF%BC%88%E4%B8%80%EF%BC%89fastbin_dup/" target="_self">
+        <div>
+          前言本篇中的demo均来自 how2heap 中的例子 华庭师傅的 《glibc内存管理ptmalloc源代码分析》 是一个很好的glibc机制入门资料，值得精读 由于我使用的glibc为2.35，glibc在2.26引入了tcache chunk，所以我们演示fastbin攻击要先填满tcache，然后也不能用malloc(size)，而是用calloc(1,size)，因为calloc()
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-11-19 16:33" pubdate>
+              2024-11-19
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/pwn%E5%AD%A6%E4%B9%A0/" class="category-chain-item">pwn学习</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/pwn/">#pwn</a>
+            
+              <a href="/tags/%E5%A0%86%E5%88%A9%E7%94%A8/">#堆利用</a>
+            
+              <a href="/tags/how2heap/">#how2heap</a>
+            
+              <a href="/tags/fastbin-dup/">#fastbin_dup</a>
+            
+              <a href="/tags/fastbin-dup-into-stack/">#fastbin_dup_into_stack</a>
+            
+              <a href="/tags/house-of-spirit/">#house_of_spirit</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2024/11/18/%E4%BD%BF%E7%94%A8glibc-all-in-one%E5%92%8Cpatchelf%E6%9B%BF%E6%8D%A2%E7%A8%8B%E5%BA%8F%E4%BE%9D%E8%B5%96%E7%9A%84libc%E6%96%87%E4%BB%B6/" target="_self">
           使用glibc-all-in-one和patchelf替换程序依赖的libc文件
         </a>
