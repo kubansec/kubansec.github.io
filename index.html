@@ -85,7 +85,7 @@
 
 
 <nav class="site-nav">
-  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">21</span></a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">2</span></a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">7</span></a></li>
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">21</span></a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">2</span></a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">8</span></a></li>
       <li class="menu-item menu-item-search">
         <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
         </a>
@@ -148,7 +148,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-count">8</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -194,6 +194,107 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://kubansec.github.io/2025/01/26/%E3%80%90buuCTF%E5%88%B7%E9%A2%98%E3%80%91asis2016_b00ks/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="KubanSec">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kuban's blog">
+      <meta itemprop="description" content="唯有自由不可辜负">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | Kuban's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/01/26/%E3%80%90buuCTF%E5%88%B7%E9%A2%98%E3%80%91asis2016_b00ks/" class="post-title-link" itemprop="url">【buuCTF刷题】asis2016_b00ks</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-01-26 21:22:34" itemprop="dateCreated datePublished" datetime="2025-01-26T21:22:34+08:00">2025-01-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-02-15 01:51:28" itemprop="dateModified" datetime="2025-02-15T01:51:28+08:00">2025-02-15</time>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>8.8k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>8 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><blockquote>
+<p>题目链接： <span class="exturl" data-url="aHR0cHM6Ly9idXVvai5jbi9jaGFsbGVuZ2VzI2FzaXMyMDE2X2IwMGtz">https://buuoj.cn/challenges#asis2016_b00ks<i class="fa fa-external-link-alt"></i></span></p>
+</blockquote>
+<p>2016年的题花了好几天时间才做出来，遂记录一下。<br>通过这道题学习到很多知识点，如off-by-one、钩子函数（malloc_hook和free_hook）的利用，还有就是——当malloc一个接近或超过top_chunk的大小的空间时，程序会使用mmap拓展空间，使得堆以mmap的形式进行扩展，而mmap开辟出的空间与libc基址的偏移是固定的，因此只要拿到mmap开辟出的chunk的地址，就能计算出libc的基地址。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2025/01/26/%E3%80%90buuCTF%E5%88%B7%E9%A2%98%E3%80%91asis2016_b00ks/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="http://kubansec.github.io/2024/12/29/%E3%80%90buuCTF%E5%88%B7%E9%A2%98%E3%80%91babyfengshui/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -230,7 +331,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-01-26 19:30:05" itemprop="dateModified" datetime="2025-01-26T19:30:05+08:00">2025-01-26</time>
+      <time title="修改时间：2025-02-15 01:32:53" itemprop="dateModified" datetime="2025-02-15T01:32:53+08:00">2025-02-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -249,14 +350,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span></span>
+      <span>5.6k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>NaN:aN</span>
+      <span>5 分钟</span>
     </span>
 </div>
 
@@ -267,7 +368,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><p>吃的比较透的一道堆题，利用布置堆的结构缺陷get shell，非常精妙。一开始我没有理清”指针”和”指针指向的内容”这两个概念，迟迟搞不明白，以后尤其是堆题要特别注意。</p>
+          <h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><p>这道题利用布置堆的结构缺陷get shell，非常精妙。一开始我没有理清”指针”和”指针指向的内容”这两个概念，迟迟搞不明白，以后尤其是堆题要特别注意。</p>
 <p>还有个疑问还没有解决：既然description2的内容作为system的参数，EXP 为什么不能这样写？</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">……</span><br><span class="line">add(0x80,&#x27;CCCC&#x27;,0x80,&#x27;cccc&#x27;)</span><br><span class="line">……</span><br><span class="line">update(2,0x10,b&#x27;/bin/sh\x00&#x27;)</span><br><span class="line">delete(2)</span><br><span class="line">……</span><br></pre></td></tr></table></figure>
           <!--noindex-->
