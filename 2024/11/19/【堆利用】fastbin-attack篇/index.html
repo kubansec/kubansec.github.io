@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"kubansec.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":true,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"kubansec.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":true,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false,"trigger":"auto"}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="序言本篇中的demo均来自 how2heap 中的例子 华庭师傅的 《glibc内存管理ptmalloc源代码分析》 是一个很好的glibc机制入门资料，值得精读 由于我使用的glibc为2.35，glibc在2.26引入了tcache chunk，所以我们演示fastbin攻击要先填满tcache，然后也不能用malloc(size)，而是用calloc(1,size)，因为calloc()不会">
 <meta property="og:type" content="article">
@@ -117,6 +117,7 @@
 
   <div class="site-nav-right">
     <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
     </div>
   </div>
 </div>
@@ -125,11 +126,37 @@
 
 <nav class="site-nav">
   <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">21</span></a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">2</span></a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">8</span></a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
   </ul>
 </nav>
 
 
 
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </header>
         
@@ -263,14 +290,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span></span>
+      <span>7.3k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>NaN:aN</span>
+      <span>7 分钟</span>
     </span>
 </div>
 
@@ -280,8 +307,8 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><p>本篇中的demo均来自 <em><a target="_blank" rel="noopener" href="https://github.com/shellphish/how2heap">how2heap</a></em> 中的例子</p>
-<p>华庭师傅的 <em><a target="_blank" rel="noopener" href="https://github.com/kubansec/Ebooks/blob/main/glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86ptmalloc%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90.pdf">《glibc内存管理ptmalloc源代码分析》</a></em> 是一个很好的glibc机制入门资料，值得精读</p>
+    <div class="post-body" itemprop="articleBody"><h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><p>本篇中的demo均来自 <em><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3NoZWxscGhpc2gvaG93MmhlYXA=">how2heap<i class="fa fa-external-link-alt"></i></span></em> 中的例子</p>
+<p>华庭师傅的 <em><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2t1YmFuc2VjL0Vib29rcy9ibG9iL21haW4vZ2xpYmMlRTUlODYlODUlRTUlQUQlOTglRTclQUUlQTElRTclOTAlODZwdG1hbGxvYyVFNiVCQSU5MCVFNCVCQiVBMyVFNyVBMCU4MSVFNSU4OCU4NiVFNiU5RSU5MC5wZGY=">《glibc内存管理ptmalloc源代码分析》<i class="fa fa-external-link-alt"></i></span></em> 是一个很好的glibc机制入门资料，值得精读</p>
 <p>由于我使用的glibc为2.35，glibc在2.26引入了tcache chunk，所以我们演示fastbin攻击要先填满tcache，然后也不能用malloc(size)，而是用calloc(1,size)，因为calloc()不会去从tcache中查找堆块，这样能保证我们操作的chunk全部位于fastbin</p>
 <span id="more"></span>
 
@@ -317,7 +344,7 @@
 <h2 id="0-布置栈结构"><a href="#0-布置栈结构" class="headerlink" title="0. 布置栈结构"></a>0. 布置栈结构</h2><p>栈上创建一个数组，在第二个元素写入0x20</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">unsigned long stack_var[4] __attribute__ ((aligned (0x10)));</span><br><span class="line">stack_var[1] = 0x20;</span><br></pre></td></tr></table></figure>
 <blockquote>
-<p>C语言内存对齐与attribute选项介绍<a target="_blank" rel="noopener" href="https://blog.csdn.net/21aspnet/article/details/6729724">https://blog.csdn.net/21aspnet/article/details/6729724</a></p>
+<p>C语言内存对齐与attribute选项介绍<span class="exturl" data-url="aHR0cHM6Ly9ibG9nLmNzZG4ubmV0LzIxYXNwbmV0L2FydGljbGUvZGV0YWlscy82NzI5NzI0">https://blog.csdn.net/21aspnet/article/details/6729724<i class="fa fa-external-link-alt"></i></span></p>
 </blockquote>
 <p>这样我们在栈上就有了这样的一块空间，fastbin_dup_into_stack想要将malloc的空间指向stack_var[2]。<br><img src="/images/p4/image-25.png"></p>
 <h2 id="1-分配3个chunk"><a href="#1-分配3个chunk" class="headerlink" title="1. 分配3个chunk"></a>1. 分配3个chunk</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">int *a = calloc(1,8);</span><br><span class="line">int *b = calloc(1,8);</span><br><span class="line">int *c = calloc(1,8);</span><br></pre></td></tr></table></figure>
@@ -336,7 +363,7 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">*d = stack_var;</span><br></pre></td></tr></table></figure>
 </blockquote>
 <blockquote>
-<p>但是2.32更新了一个叫<a target="_blank" rel="noopener" href="https://research.checkpoint.com/2020/safe-linking-eliminating-a-20-year-old-malloc-exploit-primitive">“Safe-Linking”（安全链接）</a>的保护机制，<br>这篇博客的重点不在这里，现在只需要知道我们要通过下述代码写入d chunk data段的前八个字节，从而覆盖fd指针</p>
+<p>但是2.32更新了一个叫<span class="exturl" data-url="aHR0cHM6Ly9yZXNlYXJjaC5jaGVja3BvaW50LmNvbS8yMDIwL3NhZmUtbGlua2luZy1lbGltaW5hdGluZy1hLTIwLXllYXItb2xkLW1hbGxvYy1leHBsb2l0LXByaW1pdGl2ZQ==">“Safe-Linking”（安全链接）<i class="fa fa-external-link-alt"></i></span>的保护机制，<br>这篇博客的重点不在这里，现在只需要知道我们要通过下述代码写入d chunk data段的前八个字节，从而覆盖fd指针</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">unsigned long ptr = (unsigned long)stack_var;</span><br><span class="line">unsigned long addr = (unsigned long) d;</span><br><span class="line">*d = (addr &gt;&gt; 12) ^ ptr;</span><br></pre></td></tr></table></figure>
 </blockquote>
 <p>这样一来，fastbins中的a chunk的fd指针就指向了stack_var<br><img src="/images/p4/image-44.png"></p>
@@ -447,13 +474,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">NaNm</span>
+    <span title="站点总字数">39k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">NaN:aN</span>
+    <span title="站点阅读时长">36 分钟</span>
   </span>
 </div>
 <div class="busuanzi-count">
@@ -502,7 +529,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
 <script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
 
-  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
 
 
 
