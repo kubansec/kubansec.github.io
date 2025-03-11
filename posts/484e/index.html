@@ -58,7 +58,7 @@
 <meta property="og:image" content="http://kubansec.github.io/images/p4/image-58.png">
 <meta property="og:image" content="http://kubansec.github.io/images/p4/image-60.png">
 <meta property="article:published_time" content="2024-11-19T08:33:34.000Z">
-<meta property="article:modified_time" content="2025-02-16T07:07:03.037Z">
+<meta property="article:modified_time" content="2025-02-19T14:39:36.687Z">
 <meta property="article:author" content="KubanSec">
 <meta property="article:tag" content="pwn">
 <meta property="article:tag" content="堆利用">
@@ -264,7 +264,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-02-16 15:07:03" itemprop="dateModified" datetime="2025-02-16T15:07:03+08:00">2025-02-16</time>
+      <time title="修改时间：2025-02-19 22:39:36" itemprop="dateModified" datetime="2025-02-19T22:39:36+08:00">2025-02-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -290,7 +290,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>7.3k</span>
+      <span>7.4k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -397,7 +397,8 @@
 <p>释放fake chunk，可以看到精心构造的fake chunk成功绕过了检查，进入了fastbins中<br><img src="/images/p4/image-58.png"></p>
 <h2 id="3-malloc-fake-chunk"><a href="#3-malloc-fake-chunk" class="headerlink" title="3. malloc fake chunk"></a>3. malloc fake chunk</h2><p>既然fastbins中存在我们的fake chunk，那么malloc 适当大小的chunk时，我们就能获得这个chunk了</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">void *allocated = calloc(1, 0x30);</span><br></pre></td></tr></table></figure>
-<p><img src="/images/p4/image-60.png" alt="allocated 分配到的内存地址就是victim的地址"></p>
+
+<p><img src="/images/p4/image-60.png"><br>allocated 分配到的内存地址就是victim的地址！</p>
 
     </div>
 
