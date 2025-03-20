@@ -19,24 +19,58 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"kubansec.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":true,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false,"trigger":"auto"}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="唯有自由不可辜负">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Kuban&#39;s blog">
-<meta property="og:url" content="http://kubansec.github.io/index.html">
+    <meta name="description" content="MIPS交叉编译环境配置通过下面的.sh脚本一键安装 123456789101112131415#!&#x2F;bin&#x2F;sh# Qemusudo apt install qemu-user-static # 允许直接运行其他架构的静态编译二进制文件（如MIPS程序）sudo apt install qemu-system-mips # 完整模拟MIPS架构sudo apt install binfmt-su">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【IOT安全】MIPS架构初探">
+<meta property="og:url" content="http://kubansec.github.io/posts/7f21/index.html">
 <meta property="og:site_name" content="Kuban&#39;s blog">
-<meta property="og:description" content="唯有自由不可辜负">
+<meta property="og:description" content="MIPS交叉编译环境配置通过下面的.sh脚本一键安装 123456789101112131415#!&#x2F;bin&#x2F;sh# Qemusudo apt install qemu-user-static # 允许直接运行其他架构的静态编译二进制文件（如MIPS程序）sudo apt install qemu-system-mips # 完整模拟MIPS架构sudo apt install binfmt-su">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-1.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-5.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-2.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-3.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-4.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-6.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-8.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-9.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-11.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-13.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-14.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-15.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-44.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-29.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-37.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-31.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-45.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-17.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-46.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-47.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-48.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-24.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-49.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-52.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-50.png">
+<meta property="og:image" content="http://kubansec.github.io/images/p7/image-51.png">
+<meta property="article:published_time" content="2025-03-20T03:41:19.000Z">
+<meta property="article:modified_time" content="2025-03-20T03:48:54.433Z">
 <meta property="article:author" content="KubanSec">
+<meta property="article:tag" content="iot">
+<meta property="article:tag" content="IOT安全">
+<meta property="article:tag" content="MIPS架构">
+<meta property="article:tag" content="qemu">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://kubansec.github.io/images/p7/image.png">
 
 
-<link rel="canonical" href="http://kubansec.github.io/">
+<link rel="canonical" href="http://kubansec.github.io/posts/7f21/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":true,"isPost":false,"lang":"zh-CN","comments":"","permalink":"","path":"index.html","title":""}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://kubansec.github.io/posts/7f21/","path":"posts/7f21/","title":"【IOT安全】MIPS架构初探"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>Kuban's blog</title>
+<title>【IOT安全】MIPS架构初探 | Kuban's blog</title>
   
 
 
@@ -69,7 +103,7 @@
 
     <a href="/" class="brand" rel="start">
       <i class="logo-line"></i>
-      <h1 class="site-title">Kuban's blog</h1>
+      <p class="site-title">Kuban's blog</p>
       <i class="logo-line"></i>
     </a>
       <img class="custom-logo-image" src="/images/default/favicon.png" alt="Kuban's blog">
@@ -123,7 +157,7 @@
   
   <aside class="sidebar">
 
-    <div class="sidebar-inner sidebar-overview-active">
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
       <ul class="sidebar-nav">
         <li class="sidebar-nav-toc">
           文章目录
@@ -136,6 +170,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#MIPS%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE"><span class="nav-number">1.</span> <span class="nav-text">MIPS交叉编译环境配置</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%B0%83%E8%AF%95%E7%AC%AC%E4%B8%80%E4%B8%AAMIPS%E7%A8%8B%E5%BA%8F"><span class="nav-number">2.</span> <span class="nav-text">调试第一个MIPS程序</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BA%90%E4%BB%A3%E7%A0%81"><span class="nav-number">2.1.</span> <span class="nav-text">源代码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E7%BC%96%E8%AF%91"><span class="nav-number">2.2.</span> <span class="nav-text">静态编译</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E7%BC%96%E8%AF%91%E7%9A%84%E8%BF%90%E8%A1%8C"><span class="nav-number">2.3.</span> <span class="nav-text">静态编译的运行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E7%BC%96%E8%AF%91"><span class="nav-number">2.4.</span> <span class="nav-text">动态编译</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E7%BC%96%E8%AF%91%E8%BF%90%E8%A1%8C"><span class="nav-number">2.5.</span> <span class="nav-text">动态编译运行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B0%83%E8%AF%95"><span class="nav-number">2.6.</span> <span class="nav-text">调试</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#32%E4%BD%8DMIPS%E6%9E%B6%E6%9E%84%E5%85%A5%E9%97%A8"><span class="nav-number">3.</span> <span class="nav-text">32位MIPS架构入门</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#MIPS%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-number">3.1.</span> <span class="nav-text">MIPS寄存器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%9A%E7%94%A8%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-number">3.1.1.</span> <span class="nav-text">通用寄存器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%B9%E6%AE%8A%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-number">3.1.2.</span> <span class="nav-text">特殊寄存器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MIPS%E6%B1%87%E7%BC%96%E6%8C%87%E4%BB%A4"><span class="nav-number">3.2.</span> <span class="nav-text">MIPS汇编指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MIPS%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E4%B8%8E%E5%8F%82%E6%95%B0%E4%BC%A0%E9%80%92"><span class="nav-number">3.3.</span> <span class="nav-text">MIPS函数调用与参数传递</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E4%BE%8B%E5%88%86%E6%9E%90%EF%BC%9Ademo-32-little"><span class="nav-number">4.</span> <span class="nav-text">实例分析：demo_32_little</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#mian%E5%87%BD%E6%95%B0"><span class="nav-number">4.1.</span> <span class="nav-text">mian函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mySum%E5%87%BD%E6%95%B0"><span class="nav-number">4.2.</span> <span class="nav-text">mySum函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mips%E8%B0%83%E7%94%A8%E9%9D%9E%E5%8F%B6%E5%AD%90%E5%87%BD%E6%95%B0%E6%97%B6%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">4.3.</span> <span class="nav-text">mips调用非叶子函数时的区别</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -176,16 +211,17 @@
 
     </div>
 
-    <div class="main-inner index posts-expand">
+    <div class="main-inner post posts-expand">
 
-    
+
+  
 
 
 <div class="post-block">
   
   
 
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://kubansec.github.io/posts/7f21/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -199,13 +235,13 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Kuban's blog">
+      <meta itemprop="name" content="【IOT安全】MIPS架构初探 | Kuban's blog">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/posts/7f21/" class="post-title-link" itemprop="url">【IOT安全】MIPS架构初探</a>
-        </h2>
+        <h1 class="post-title" itemprop="name headline">
+          【IOT安全】MIPS架构初探
+        </h1>
 
         <div class="post-meta-container">
           <div class="post-meta">
@@ -229,6 +265,13 @@
     </span>
 
   
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
     <span class="post-meta-break"></span>
     <span class="post-meta-item" title="本文字数">
       <span class="post-meta-item-icon">
@@ -252,8 +295,7 @@
     
     
     
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="MIPS交叉编译环境配置"><a href="#MIPS交叉编译环境配置" class="headerlink" title="MIPS交叉编译环境配置"></a>MIPS交叉编译环境配置</h1><p>通过下面的.sh脚本一键安装</p>
+    <div class="post-body" itemprop="articleBody"><h1 id="MIPS交叉编译环境配置"><a href="#MIPS交叉编译环境配置" class="headerlink" title="MIPS交叉编译环境配置"></a>MIPS交叉编译环境配置</h1><p>通过下面的.sh脚本一键安装</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/sh</span><br><span class="line"></span><br><span class="line"># Qemu</span><br><span class="line">sudo apt install qemu-user-static # 允许直接运行其他架构的静态编译二进制文件（如MIPS程序）</span><br><span class="line">sudo apt install qemu-system-mips # 完整模拟MIPS架构</span><br><span class="line">sudo apt install binfmt-support   # 自动识别非本地架构的可执行文件格式，需配合QEMU使用</span><br><span class="line"></span><br><span class="line"># gdb-multiarch</span><br><span class="line">sudo apt install gdb-multiarch    # 支持多架构的GDB调试器，可调试MIPS/ARM等非x86程序</span><br><span class="line"></span><br><span class="line"># MIPS依赖</span><br><span class="line">sudo apt-get install gcc-mips-linux-gnu</span><br><span class="line">sudo apt-get install gcc-mipsel-linux-gnu</span><br><span class="line">sudo apt-get install gcc-mips64-linux-gnuabi64</span><br><span class="line">sudo apt-get install gcc-mips64el-linux-gnuabi64</span><br></pre></td></tr></table></figure>
 
 <h1 id="调试第一个MIPS程序"><a href="#调试第一个MIPS程序" class="headerlink" title="调试第一个MIPS程序"></a>调试第一个MIPS程序</h1><h2 id="源代码"><a href="#源代码" class="headerlink" title="源代码"></a>源代码</h2><p>预编译的c程序：</p>
@@ -624,7 +666,6 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">0x40082c &lt;main+80&gt;:	lw	gp,16(s8)</span><br><span class="line">0x400830 &lt;main+84&gt;:	move	v0,zero</span><br><span class="line">0x400834 &lt;main+88&gt;:	move	sp,s8</span><br><span class="line">0x400838 &lt;main+92&gt;:	lw	ra,36(sp)</span><br><span class="line">0x40083c &lt;main+96&gt;:	lw	s8,32(sp)</span><br><span class="line">0x400840 &lt;main+100&gt;:	addiu	sp,sp,40</span><br><span class="line">0x400844 &lt;main+104&gt;:	jr	ra</span><br><span class="line">0x400848 &lt;main+108&gt;:	nop</span><br></pre></td></tr></table></figure>
 <p>其中这条语句<code>lw	ra,36(sp)</code>，就是把先前记录在栈上的<code>0x400930</code>读到了寄存器中<br><img src="/./images/p7/image-51.png"><br>继而<code>jr	ra;nop</code>，从而跳转到main的返回地址处。</p>
 
-      
     </div>
 
     
@@ -632,867 +673,45 @@
     
 
     <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>KubanSec
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="http://kubansec.github.io/posts/7f21/" title="【IOT安全】MIPS架构初探">http://kubansec.github.io/posts/7f21/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <span class="exturl" data-url="aHR0cHM6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL2xpY2Vuc2VzL2J5LW5jLXNhLzQuMC9kZWVkLnpo"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</span> 许可协议。转载请注明出处！
+  </li>
+</ul>
 </div>
 
+          <div class="post-tags">
+              <a href="/tags/iot/" rel="tag"># iot</a>
+              <a href="/tags/IOT%E5%AE%89%E5%85%A8/" rel="tag"># IOT安全</a>
+              <a href="/tags/MIPS%E6%9E%B6%E6%9E%84/" rel="tag"># MIPS架构</a>
+              <a href="/tags/qemu/" rel="tag"># qemu</a>
+          </div>
 
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://kubansec.github.io/posts/b08e/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="KubanSec">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Kuban's blog">
-      <meta itemprop="description" content="唯有自由不可辜负">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Kuban's blog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/posts/b08e/" class="post-title-link" itemprop="url">【buuCTF刷题】asis2016_b00ks</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-01-26 21:22:34" itemprop="dateCreated datePublished" datetime="2025-01-26T21:22:34+08:00">2025-01-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-02-16 15:07:03" itemprop="dateModified" datetime="2025-02-16T15:07:03+08:00">2025-02-16</time>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>8.8k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>8 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><blockquote>
-<p>题目链接： <span class="exturl" data-url="aHR0cHM6Ly9idXVvai5jbi9jaGFsbGVuZ2VzI2FzaXMyMDE2X2IwMGtz">https://buuoj.cn/challenges#asis2016_b00ks<i class="fa fa-external-link-alt"></i></span></p>
-</blockquote>
-<p>2016年的题花了好几天时间才做出来，遂记录一下。<br>通过这道题学习到很多知识点，如off-by-one、钩子函数（malloc_hook和free_hook）的利用，还有就是——当malloc一个接近或超过top_chunk的大小的空间时，程序会使用mmap拓展空间，使得堆以mmap的形式进行扩展，而mmap开辟出的空间与libc基址的偏移是固定的，因此只要拿到mmap开辟出的chunk的地址，就能计算出libc的基地址。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/posts/b08e/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
         
-      
-    </div>
 
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://kubansec.github.io/posts/a500/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="KubanSec">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Kuban's blog">
-      <meta itemprop="description" content="唯有自由不可辜负">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Kuban's blog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/posts/a500/" class="post-title-link" itemprop="url">【buuCTF刷题】babyfengshui</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2024-12-29 17:04:13" itemprop="dateCreated datePublished" datetime="2024-12-29T17:04:13+08:00">2024-12-29</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-02-16 15:07:03" itemprop="dateModified" datetime="2025-02-16T15:07:03+08:00">2025-02-16</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/buuCTF%E5%88%B7%E9%A2%98/" itemprop="url" rel="index"><span itemprop="name">buuCTF刷题</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>5.6k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>5 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><p>这道题利用布置堆的结构缺陷get shell，非常精妙。一开始我没有理清”指针”和”指针指向的内容”这两个概念，迟迟搞不明白，以后尤其是堆题要特别注意。</p>
-<p>还有个疑问还没有解决：既然description2的内容作为system的参数，EXP 为什么不能这样写？</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">……</span><br><span class="line">add(0x80,&#x27;CCCC&#x27;,0x80,&#x27;cccc&#x27;)</span><br><span class="line">……</span><br><span class="line">update(2,0x10,b&#x27;/bin/sh\x00&#x27;)</span><br><span class="line">delete(2)</span><br><span class="line">……</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/posts/a500/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/posts/b08e/" rel="prev" title="【buuCTF刷题】asis2016_b00ks">
+                  <i class="fa fa-angle-left"></i> 【buuCTF刷题】asis2016_b00ks
+                </a>
             </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://kubansec.github.io/posts/9ef5/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="KubanSec">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Kuban's blog">
-      <meta itemprop="description" content="唯有自由不可辜负">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Kuban's blog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/posts/9ef5/" class="post-title-link" itemprop="url">【buuCTF刷题】pwnable-echo2</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2024-12-10 14:56:50" itemprop="dateCreated datePublished" datetime="2024-12-10T14:56:50+08:00">2024-12-10</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-02-16 15:07:03" itemprop="dateModified" datetime="2025-02-16T15:07:03+08:00">2025-02-16</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/buuCTF%E5%88%B7%E9%A2%98/" itemprop="url" rel="index"><span itemprop="name">buuCTF刷题</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>4.4k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>4 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><p>第一次做堆——UAF 的题，感觉堆对代码能力的要求更高，并且IDA分析出来的也要辩证的去看，比如函数指针数组，他可能会分析成这样，我们就要知道func[0] &#x3D;echo1;func[1] &#x3D;echo2;func[2] &#x3D;echo3<br><img src="/./images/p5/1.png"><br>注意64位程序格式化字符串漏洞中：<br>    %0$p &lt;=&#x3D;&gt; rdi &lt;=&#x3D;&gt; printf的第一个参数<br>    %1$p &lt;=&#x3D;&gt; rsi &lt;=&#x3D;&gt; printf的第二个参数</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/posts/9ef5/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
+            <div class="post-nav-item">
             </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
+          </div>
     </footer>
   </article>
 </div>
 
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://kubansec.github.io/posts/484e/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="KubanSec">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Kuban's blog">
-      <meta itemprop="description" content="唯有自由不可辜负">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Kuban's blog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/posts/484e/" class="post-title-link" itemprop="url">【堆利用】fastbin-attack学习总结</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2024-11-19 16:33:34" itemprop="dateCreated datePublished" datetime="2024-11-19T16:33:34+08:00">2024-11-19</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-02-19 22:39:36" itemprop="dateModified" datetime="2025-02-19T22:39:36+08:00">2025-02-19</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/pwn%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">pwn学习</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>7.4k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>7 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><p>本篇中的demo均来自 <em><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3NoZWxscGhpc2gvaG93MmhlYXA=">how2heap<i class="fa fa-external-link-alt"></i></span></em> 中的例子</p>
-<p>华庭师傅的 <em><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2t1YmFuc2VjL0Vib29rcy9ibG9iL21haW4vZ2xpYmMlRTUlODYlODUlRTUlQUQlOTglRTclQUUlQTElRTclOTAlODZwdG1hbGxvYyVFNiVCQSU5MCVFNCVCQiVBMyVFNyVBMCU4MSVFNSU4OCU4NiVFNiU5RSU5MC5wZGY=">《glibc内存管理ptmalloc源代码分析》<i class="fa fa-external-link-alt"></i></span></em> 是一个很好的glibc机制入门资料，值得精读</p>
-<p>由于我使用的glibc为2.35，glibc在2.26引入了tcache chunk，所以我们演示fastbin攻击要先填满tcache，然后也不能用malloc(size)，而是用calloc(1,size)，因为calloc()不会去从tcache中查找堆块，这样能保证我们操作的chunk全部位于fastbin</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/posts/484e/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://kubansec.github.io/posts/5849/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="KubanSec">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Kuban's blog">
-      <meta itemprop="description" content="唯有自由不可辜负">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Kuban's blog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/posts/5849/" class="post-title-link" itemprop="url">使用glibc-all-in-one和patchelf替换程序依赖的libc文件</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2024-11-18 20:15:53" itemprop="dateCreated datePublished" datetime="2024-11-18T20:15:53+08:00">2024-11-18</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-02-16 15:07:03" itemprop="dateModified" datetime="2025-02-16T15:07:03+08:00">2025-02-16</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/pwn%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">pwn学习</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>1.1k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <div class="markdown-body">
-
-<h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><p>在做堆题时，由于题目环境与本地环境的差异，直接运行题目文件会出现偏差或错误，可以通过glibc-all-in-one和patchelf工具找到与题目环境相同的libc和ld，重新动态链接文件，即可解决。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/posts/5849/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://kubansec.github.io/posts/1d47/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="KubanSec">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Kuban's blog">
-      <meta itemprop="description" content="唯有自由不可辜负">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Kuban's blog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/posts/1d47/" class="post-title-link" itemprop="url">栈上ORW学习总结</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2024-11-12 13:54:01" itemprop="dateCreated datePublished" datetime="2024-11-12T13:54:01+08:00">2024-11-12</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-02-16 15:07:03" itemprop="dateModified" datetime="2025-02-16T15:07:03+08:00">2025-02-16</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/pwn%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">pwn学习</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>7.6k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>7 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="前置知识：沙箱保护和ORW"><a href="#前置知识：沙箱保护和ORW" class="headerlink" title="前置知识：沙箱保护和ORW"></a>前置知识：沙箱保护和ORW</h1><h2 id="沙箱保护-SandBox"><a href="#沙箱保护-SandBox" class="headerlink" title="沙箱保护 SandBox"></a>沙箱保护 SandBox</h2><p>正常情况下，程序可以使用所有的syscall，但其实这是不安全的，我们可以劫持程序流后通过execve的syscall来getshell。<br>如果不想让程序去执行execve，我们可以这样做：将程序放入一个沙箱中，在这个沙箱中添加一条规则——禁用execve函数。在这个沙箱中的程序只要调用了execve的系统调用，直接给他中断掉，这就是沙箱sandbox的作用。</p>
-<p>SandBox的实现一般有两种，一种是<span class="exturl" data-url="aHR0cHM6Ly93d3cuY25ibG9ncy5jb20vTDBnNG4tYmxvZy9wLzEyODM5MTcxLmh0bWw=">seccomp()函数调用<i class="fa fa-external-link-alt"></i></span>，另一种是<span class="exturl" data-url="aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzQ0ODQ2MzI0L2FydGljbGUvZGV0YWlscy8xMjE3MzE2NDA=">prctl()函数调用<i class="fa fa-external-link-alt"></i></span></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/posts/1d47/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://kubansec.github.io/posts/6e43/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="KubanSec">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Kuban's blog">
-      <meta itemprop="description" content="唯有自由不可辜负">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Kuban's blog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/posts/6e43/" class="post-title-link" itemprop="url">栈迁移学习总结</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2024-11-07 16:06:15" itemprop="dateCreated datePublished" datetime="2024-11-07T16:06:15+08:00">2024-11-07</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-03-11 11:48:27" itemprop="dateModified" datetime="2025-03-11T11:48:27+08:00">2025-03-11</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/pwn%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">pwn学习</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>4.1k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>4 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="前置知识：什么是栈迁移？"><a href="#前置知识：什么是栈迁移？" class="headerlink" title="前置知识：什么是栈迁移？"></a>前置知识：什么是栈迁移？</h1><blockquote>
-<p><span class="exturl" data-url="aHR0cHM6Ly9jdGYtd2lraS5vcmcvcHduL2xpbnV4L3VzZXItbW9kZS9zdGFja292ZXJmbG93L3g4Ni9mYW5jeS1yb3AvI3N0YWNrLXBpdm90aW5n">https://ctf-wiki.org/pwn/linux/user-mode/stackoverflow/x86/fancy-rop/#stack-pivoting<i class="fa fa-external-link-alt"></i></span></p>
-</blockquote>
-<p>首先看一下正常的程序结构，函数在结束时会进行leave和ret指令<br>——leave做两件事，第一件事是mov esp,ebp，也就是将esp移到ebp的位置，第二件事是pop ebp，也就是将ebp移到上一个函数的记录的位置上去<br>——ret就做一件事pop eip，也就是将esp中的内容弹入eip中，也就是内容放到程序的执行流上。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/posts/6e43/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://kubansec.github.io/posts/3eeb/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="KubanSec">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Kuban's blog">
-      <meta itemprop="description" content="唯有自由不可辜负">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Kuban's blog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/posts/3eeb/" class="post-title-link" itemprop="url">Hello World</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2024-11-02 16:44:05" itemprop="dateCreated datePublished" datetime="2024-11-02T16:44:05+08:00">2024-11-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-02-16 15:07:03" itemprop="dateModified" datetime="2025-02-16T15:07:03+08:00">2025-02-16</time>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>367</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>Welcome to <span class="exturl" data-url="aHR0cHM6Ly9oZXhvLmlvLw==">Hexo<i class="fa fa-external-link-alt"></i></span>! This is your very first post. Check <span class="exturl" data-url="aHR0cHM6Ly9oZXhvLmlvL2RvY3Mv">documentation<i class="fa fa-external-link-alt"></i></span> for more info. If you get any problems when using Hexo, you can find the answer in <span class="exturl" data-url="aHR0cHM6Ly9oZXhvLmlvL2RvY3MvdHJvdWJsZXNob290aW5nLmh0bWw=">troubleshooting<i class="fa fa-external-link-alt"></i></span> or you can ask me on <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2hleG9qcy9oZXhvL2lzc3Vlcw==">GitHub<i class="fa fa-external-link-alt"></i></span>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <span class="exturl" data-url="aHR0cHM6Ly9oZXhvLmlvL2RvY3Mvd3JpdGluZy5odG1s">Writing<i class="fa fa-external-link-alt"></i></span></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <span class="exturl" data-url="aHR0cHM6Ly9oZXhvLmlvL2RvY3Mvc2VydmVyLmh0bWw=">Server<i class="fa fa-external-link-alt"></i></span></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <span class="exturl" data-url="aHR0cHM6Ly9oZXhvLmlvL2RvY3MvZ2VuZXJhdGluZy5odG1s">Generating<i class="fa fa-external-link-alt"></i></span></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <span class="exturl" data-url="aHR0cHM6Ly9oZXhvLmlvL2RvY3Mvb25lLWNvbW1hbmQtZGVwbG95bWVudC5odG1s">Deployment<i class="fa fa-external-link-alt"></i></span></p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
 
 
 
