@@ -497,7 +497,7 @@
       </tags>
   </entry>
   <entry>
-    <title>&#92;[IOT安全&#92;]MIPS架构初探</title>
+    <title>【IOT安全】MIPS架构初探</title>
     <url>/posts/7f21/</url>
     <content><![CDATA[<h1 id="MIPS交叉编译环境配置"><a href="#MIPS交叉编译环境配置" class="headerlink" title="MIPS交叉编译环境配置"></a>MIPS交叉编译环境配置</h1><p>通过下面的.sh脚本一键安装</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#!/bin/sh</span><br><span class="line"></span><br><span class="line"># Qemu</span><br><span class="line">sudo apt install qemu-user-static # 允许直接运行其他架构的静态编译二进制文件（如MIPS程序）</span><br><span class="line">sudo apt install qemu-system-mips # 完整模拟MIPS架构</span><br><span class="line">sudo apt install binfmt-support   # 自动识别非本地架构的可执行文件格式，需配合QEMU使用</span><br><span class="line"></span><br><span class="line"># gdb-multiarch</span><br><span class="line">sudo apt install gdb-multiarch    # 支持多架构的GDB调试器，可调试MIPS/ARM等非x86程序</span><br><span class="line"></span><br><span class="line"># MIPS依赖</span><br><span class="line">sudo apt-get install gcc-mips-linux-gnu</span><br><span class="line">sudo apt-get install gcc-mipsel-linux-gnu</span><br><span class="line">sudo apt-get install gcc-mips64-linux-gnuabi64</span><br><span class="line">sudo apt-get install gcc-mips64el-linux-gnuabi64</span><br></pre></td></tr></table></figure>
