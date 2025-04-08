@@ -186,6 +186,110 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://kubansec.github.io/posts/42e0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="KubanSec">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kuban's blog">
+      <meta itemprop="description" content="唯有自由不可辜负">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | Kuban's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/posts/42e0/" class="post-title-link" itemprop="url">PolarCTF2025春季个人挑战赛——部分WP</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2025-04-08 21:53:35 / 修改时间：21:54:33" itemprop="dateCreated datePublished" datetime="2025-04-08T21:53:35+08:00">2025-04-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/pwn%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">pwn学习</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>5.6k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>5 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><p>这是polarctf2025春季个人挑战赛——栈溢出部分，堆系列有两道搞不懂，先放出来这些，后面继续学堆去咯~</p>
+<blockquote>
+<p>题目附件：<br><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2t1YmFuc2VjL3B3bi90cmVlL21haW4vcG9sYXJjdGYyMDI1X1NwcmluZw==">https://github.com/kubansec/pwn/tree/main/polarctf2025_Spring<i class="fa fa-external-link-alt"></i></span></p>
+</blockquote>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/posts/42e0/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="http://kubansec.github.io/posts/7f21/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -361,116 +465,6 @@
 <p>题目链接： <span class="exturl" data-url="aHR0cHM6Ly9idXVvai5jbi9jaGFsbGVuZ2VzI2FzaXMyMDE2X2IwMGtz">https://buuoj.cn/challenges#asis2016_b00ks<i class="fa fa-external-link-alt"></i></span></p>
 </blockquote>
 <p>2016年的题花了好几天时间才做出来，遂记录一下。<br>通过这道题学习到很多知识点，如off-by-one、钩子函数（malloc_hook和free_hook）的利用，还有就是——当malloc一个接近或超过top_chunk的大小的空间时，程序会使用mmap拓展空间，使得堆以mmap的形式进行扩展，而mmap开辟出的空间与libc基址的偏移是固定的，因此只要拿到mmap开辟出的chunk的地址，就能计算出libc的基地址。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/posts/b08e/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://kubansec.github.io/posts/b08e/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="KubanSec">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Kuban's blog">
-      <meta itemprop="description" content="唯有自由不可辜负">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Kuban's blog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/posts/b08e/" class="post-title-link" itemprop="url">PolarCTF2025春季个人挑战赛——部分WP</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-01-26 21:22:34" itemprop="dateCreated datePublished" datetime="2025-01-26T21:22:34+08:00">2025-01-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-04-08 21:48:34" itemprop="dateModified" datetime="2025-04-08T21:48:34+08:00">2025-04-08</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/pwn%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">pwn学习</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>5.6k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>5 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><p>这是polarctf2025春季个人挑战赛——栈溢出部分，堆系列有两道搞不懂，先放出来这些，后面继续学堆去咯~</p>
-<blockquote>
-<p>题目附件：<br><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2t1YmFuc2VjL3B3bi90cmVlL21haW4vcG9sYXJjdGYyMDI1X1NwcmluZw==">https://github.com/kubansec/pwn/tree/main/polarctf2025_Spring<i class="fa fa-external-link-alt"></i></span></p>
-</blockquote>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/posts/b08e/#more" rel="contents">
